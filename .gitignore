@@ -1,0 +1,9 @@
+*.pyc
+__pycache__/
+dist/
+docs/
+GPTManager.egg-info/
+setup.py
+setup.cfg
+pyproject.toml
+clear.sh
