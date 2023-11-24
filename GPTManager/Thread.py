@@ -1,52 +1,87 @@
 from openai import OpenAI
 
+from Message import Message
+
+
 class Thread:
     __thread: dict  = None
-    __apiKey: str = None
-    id: str
+    thread_id: str
     created_at: int
     metadata: dict
-
-    def __init__(self, id = None):
-        if id:
-            self.retreive(id)
+    message: dict(
+        id = "msg_abc123",
+        object = "thread.message",
+        created_at= 1698983503,
+        thread_id = "thread_abc123",
+        role= "assistant",
+        content = dict[
+            dict( 
+                    type= "text",
+                    text = dict(
+                         value= "Hi! How can I help you today?",
+                        annotations= []
+                    )
+                ),
+        ],
+        file_ids= [],
+        assistant_id= "asst_abc123",
+        run_id= "run_abc123",
+        metadata= {}
+    )
+        
+    def __init__(self, thread_id = None):
+        if thread_id:
+            self.retreive(thread_id)
         else:
             self.create()
 
         self.__sync()
 
-        pass
-
     def create(self):
         client = OpenAI()
         self.__thread = client.beta.threads.create()
 
-    def retreive(self, id):
+    def retreive(self, thread_id):
         client = OpenAI()
-        self.__thread = client.beta.threads.retrieve(id)
+        self.__thread = client.beta.threads.retrieve(thread_id)
 
-    def modify(self, id, metadata):
+    def modify(self, thread_id, metadata):
         client = OpenAI()
         self.__thread = client.beta.threads.update(
-            thread_id = id, 
+            thread_id = thread_id, 
             metadata = metadata
         )
 
-    def delete(self, id):
+    def delete(self, thread_id): 
         """     
         returns {
-            "id": "thread_id",
+            "id": "thread_abc123",
             "object": "thread.deleted",
             "deleted": true
         }
         """
         client = OpenAI()
-        return client.beta.threads.delete(id)
+        return client.beta.threads.delete(thread_id)
 
 
-    def push_message(self):
-        pass
-
+    def create_message(self, role, content: str, file_ids) -> Message:
+        client = OpenAI()
+        return client.beta.threads.messages.create(
+            self.id,
+            role=role,
+            content=content,
+            file_ids=[]
+        )
+    
+    def create_message(self, message: Message) -> Message:
+        client = OpenAI()
+        return client.beta.threads.messages.create(
+            message.thread_id,
+            role=message.role,
+            content=message.content,
+            file_ids=message.file_ids
+        )
+    
     def upload_file(self):
         pass
 
