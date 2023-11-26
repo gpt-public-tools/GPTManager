@@ -1,10 +1,38 @@
 from openai import OpenAI
 
-from Message import MessageObject, MessageFileObject
-
 from dataclasses import dataclass, field
 from typing import Dict, Any
 
+@dataclass
+class TextContent:
+    value: str
+    annotations: list[Any] = field(default_factory=list)
+
+@dataclass
+class Content:
+    type: str
+    text: TextContent
+
+@dataclass
+class MessageObject:
+    id: str
+    object: str
+    created_at: int
+    thread_id: str
+    role: str
+    content: list[Content]
+    file_ids: list[Any] = field(default_factory=list)
+    assistant_id: str
+    run_id: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class MessageFileObject:
+    id: str
+    object: str
+    created_at: int
+    message_id: str
+    file_id: str
 
 @dataclass
 class ThreadObject:
