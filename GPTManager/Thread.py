@@ -1,70 +1,118 @@
 from openai import OpenAI
 
-from Message import Message
+from Message import MessageObject
+
+from dataclasses import dataclass, field
+from typing import Dict, Any
 
 
-class Thread:
-    __thread: dict  = None
-    thread_id: str
+@dataclass
+class ThreadObject:
+    id: str
+    object: str
     created_at: int
-    metadata: dict
-    message: dict(
-        id = "msg_abc123",
-        object = "thread.message",
-        created_at= 1698983503,
-        thread_id = "thread_abc123",
-        role= "assistant",
-        content = dict[
-            dict( 
-                    type= "text",
-                    text = dict(
-                         value= "Hi! How can I help you today?",
-                        annotations= []
-                    )
-                ),
-        ],
-        file_ids= [],
-        assistant_id= "asst_abc123",
-        run_id= "run_abc123",
-        metadata= {}
-    )
-        
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+class Thread:
+    __thread: ThreadObject  = None
+    message: MessageObject   
+
     def __init__(self, thread_id = None):
         if thread_id:
-            self.retreive(thread_id)
+            self.retrieve_thread(thread_id)
         else:
-            self.create()
+            self.create_thread()
 
-        self.__sync()
 
-    def create(self):
-        client = OpenAI()
-        self.__thread = client.beta.threads.create()
+    @property
+    def thread(self) -> ThreadObject:
+        """Getter for __thread"""
+        return self.__thread
 
-    def retreive(self, thread_id):
-        client = OpenAI()
-        self.__thread = client.beta.threads.retrieve(thread_id)
 
-    def modify(self, thread_id, metadata):
-        client = OpenAI()
-        self.__thread = client.beta.threads.update(
-            thread_id = thread_id, 
-            metadata = metadata
-        )
+    @thread.setter
+    def thread(self, value: ThreadObject):
+        """Setter for __thread"""
+        if not isinstance(value, ThreadObject):
+            raise ValueError("Value must be an instance of ThreadObject")
+        self.__thread = value
 
-    def delete(self, thread_id): 
-        """     
-        returns {
-            "id": "thread_abc123",
-            "object": "thread.deleted",
-            "deleted": true
-        }
+  
+    def create_thread(self) -> ThreadObject:
         """
-        client = OpenAI()
-        return client.beta.threads.delete(thread_id)
+        Creates a new thread using the OpenAI client and sets the __thread attribute.
+        Returns:
+            ThreadObject: An instance representing the newly created thread.
+        Raises:
+            ValueError: If the thread creation fails or returns invalid data.
+        """
+        try:
+            client = OpenAI()
+            thread_data = client.beta.threads.create()
+            self.thread = ThreadObject(**thread_data)  # Using the setter
+            return self.thread
+        except Exception as e:
+            raise ValueError("Failed to create thread") from e
 
 
-    def create_message(self, role, content: str, file_ids) -> Message:
+    def retrieve_thread(self, thread_id) -> ThreadObject:
+        """
+        Retrieves the thread from id using the OpenAI client and sets the __thread attribute.
+        Returns:
+            ThreadObject: An instance representing the retrieved thread.
+        Raises:
+            ValueError: If the thread retrieval fails or returns invalid data.
+        """
+        try:
+            client = OpenAI()
+            thread_data = client.beta.threads.retrieve(thread_id)
+            self.thread = ThreadObject(**thread_data)  # Using the setter
+            return self.thread
+        except Exception as e:
+            raise ValueError("Failed to retreive thread") from e
+
+
+    def modify_thread_metadata(self, thread_id, metadata) -> ThreadObject:   
+        """
+        Modifies the thread  using the OpenAI client and sets the __thread.metadata attribute.
+        Returns:
+            ThreadObject: An instance representing the modified thread.
+        Raises:
+            ValueError: If the thread modification fails or returns invalid data.
+        """
+        try:
+            client = OpenAI()
+            thread_data = client.beta.threads.update(
+                thread_id = thread_id, 
+                metadata = metadata
+            )
+            self.thread = ThreadObject(**thread_data)  # Using the setter
+            return self.thread
+        except Exception as e:
+            raise ValueError("Failed to modify thread metadata") from e
+
+
+    def delete_thread(self, thread_id): 
+        """     
+        Deletes the thread using the OpenAI client and sets the __thread to None.
+        Returns:
+            {
+                "id": "thread_abc123",
+                "object": "thread.deleted",
+                "deleted": true
+            }
+        Raises:
+            ValueError: If the thread modification fails or returns invalid data.
+        """
+        try:
+            client = OpenAI()
+            self.thread = None
+            return client.beta.threads.delete(thread_id)
+        except Exception as e:
+            raise ValueError("Failed to delete thread") from e
+
+
+    def create_message_from_params(self, role, content: str, file_ids) -> MessageObject:
         client = OpenAI()
         return client.beta.threads.messages.create(
             self.id,
@@ -73,7 +121,8 @@ class Thread:
             file_ids=[]
         )
     
-    def create_message(self, message: Message) -> Message:
+
+    def create_message_from_message_object(self, message: MessageObject) -> MessageObject:
         client = OpenAI()
         return client.beta.threads.messages.create(
             message.thread_id,
@@ -82,18 +131,16 @@ class Thread:
             file_ids=message.file_ids
         )
     
+
     def upload_file(self):
         pass
 
-    def get_messages(self):
+
+    def get_messages(self) -> list[MessageObject]:
         pass
+
 
     def wait_runs(self):
         pass
-
-    def __sync(self):
-        self.id = self.__thread.id
-        self.created_at = self.__thread.created_at
-        self.metadata = self.__thread.metadata
 
 

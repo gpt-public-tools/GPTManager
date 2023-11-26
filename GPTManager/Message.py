@@ -12,7 +12,7 @@ class Content:
     text: TextContent
 
 @dataclass
-class Message:
+class MessageObject:
     id: str
     object: str
     created_at: int
