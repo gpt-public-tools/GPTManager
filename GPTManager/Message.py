@@ -25,3 +25,10 @@ class MessageObject:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     
+@dataclass
+class MessageFileObject:
+    id: str
+    object: str
+    created_at: int
+    message_id: str
+    file_id: str
