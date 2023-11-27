@@ -15,7 +15,7 @@ class AssistantObject:
     created_at: int
     name: Optional[str]
     description: Optional[str]
-    model: str
+    model: str = "gpt-4-1106-preview"
     instructions: Optional[str]
     tools: list[Tool]
     file_ids: list[Any] = field(default_factory=list)
@@ -23,27 +23,24 @@ class AssistantObject:
 
 
 class Assistant:
-    __assistant: AssistantObject  = None
+    __id: str
+    __object: str
+    __created_at: int
+    __name: Optional[str]
+    __description: Optional[str]
+    __model: str = "gpt-4-1106-preview"
+    __instructions: Optional[str]
+    __tools: list[Tool]
+    __file_ids: list[Any] = field(default_factory=list)
+    __metadata: Dict[str, Any] = field(default_factory=dict)
+
 
     def __init__(self, assistant_id: str = None):
-        if assistant_id:
-            self.retrieve_assistant(assistant_id)
+        if assistant_id is not None:
+            self.__id = assistant_id
+            self.retrieve_assistant()
         else:
             self.create_assistant()
-
-
-    @property
-    def assistant(self) -> AssistantObject:
-        """Getter for __assistant"""
-        return self.__assistant
-
-
-    @assistant.setter
-    def assistant(self, value: AssistantObject):
-        """Setter for __assistant"""
-        if not isinstance(value, AssistantObject):
-            raise ValueError("Value must be an instance of AssistantObject")
-        self.__assistant = value
 
 
     def create_assistant(
@@ -59,38 +56,64 @@ class Assistant:
     ) -> AssistantObject:
         """
         Creates a new assistant using the OpenAI client and sets the __assistant attribute.
+
         Returns:
-            AssistantObject: An instance representing the newly created assistant.
+            None
+
         Raises:
             ValueError: If the assistant creation fails or returns invalid data.
         """
+        client = OpenAI()
+
         try:
-            client = OpenAI()
+            
             assistant_data = client.beta.assistants.create(
                 instructions=instructions,
                 name=name,
                 tools=tools,
                 model=model,
             )
-            self.assistant = AssistantObject(**assistant_data)  # Using the setter
-            return self.assistant
+
+            self.__id = assistant_data.id
+            self.__object = assistant_data.object
+            self.__created_at = assistant_data.created_at
+            self.__name = assistant_data.name
+            self.__description = assistant_data.description
+            self.__model = assistant_data.model
+            self.__instructions = assistant_data.instructions
+            self.__tools = assistant_data.tools
+            self.__file_ids = assistant_data.file_ids
+            self.__metadata = assistant_data.metadata
+
         except Exception as e:
             raise ValueError("Failed to create assistant") from e
 
 
-    def retrieve_assistant(self, assistant_id: str) -> AssistantObject:
+    def retrieve_assistant(self) -> AssistantObject:
         """
         Retrieves the assistant from id using the OpenAI client and sets the __assistant attribute.
-        Returns:
-            AssistantObject: An instance representing the retrieved assistant.
+       
+         Returns:
+            None
+
         Raises:
             ValueError: If the assistant retrieval fails or returns invalid data.
         """
+        client = OpenAI()
+
         try:
-            client = OpenAI()
-            assistant_data = client.beta.assistants.retrieve(assistant_id)
-            self.assistant = AssistantObject(**assistant_data)  # Using the setter
-            return self.assistant
+            assistant_data = client.beta.assistants.retrieve(self.__id)
+
+            self.__object = assistant_data.object
+            self.__created_at = assistant_data.created_at
+            self.__name = assistant_data.name
+            self.__description = assistant_data.description
+            self.__model = assistant_data.model
+            self.__instructions = assistant_data.instructions
+            self.__tools = assistant_data.tools
+            self.__file_ids = assistant_data.file_ids
+            self.__metadata = assistant_data.metadata
+
         except Exception as e:
             raise ValueError("Failed to retreive assistant") from e
 
@@ -114,22 +137,32 @@ class Assistant:
             file_ids (List[Any]): List of file IDs associated with the assistant.
 
         Returns:
-            AssistantObject: An instance representing the updated assistant.
+            None
 
         Raises:
             ValueError: If assistant modification fails or returns invalid data.
         """
         try:
             client = OpenAI()
-            updated_assistant_data = client.beta.assistants.update(
-                assistant_id=self.assistant.id,
+            assistant_data = client.beta.assistants.update(
+                assistant_id=self.__id,
                 instructions=instructions,
                 name=name,
                 tools=[tool.__dict__ for tool in tools],  # Convert Tool objects to dictionaries
                 model=model,
                 file_ids=file_ids
             )
-            return AssistantObject(**updated_assistant_data)
+            
+            self.__object = assistant_data.object
+            self.__created_at = assistant_data.created_at
+            self.__name = assistant_data.name
+            self.__description = assistant_data.description
+            self.__model = assistant_data.model
+            self.__instructions = assistant_data.instructions
+            self.__tools = assistant_data.tools
+            self.__file_ids = assistant_data.file_ids
+            self.__metadata = assistant_data.metadata
+
         except Exception as e:
             raise ValueError("Failed to modify assistant") from e
 
