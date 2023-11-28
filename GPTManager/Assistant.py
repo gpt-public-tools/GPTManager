@@ -3,19 +3,26 @@ from openai import OpenAI
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+@dataclass
+class AssistantFile:
+    id: str
+    object: str
+    created_at: int
+    assistant_id: str
+
 
 @dataclass
 class Tool:
     type: str
 
-
+@dataclass
 class Assistant:
     __id: str
     __object: str
     __created_at: int
     __name: Optional[str]
     __description: Optional[str]
-    __model: str = "gpt-4-1106-preview"
+    __model: str
     __instructions: Optional[str]
     __tools: list[Tool]
     __file_ids: list[Any] = field(default_factory=list)
@@ -149,3 +156,25 @@ class Assistant:
         except Exception as e:
             raise ValueError("Failed to modify assistant") from e
 
+
+    def delete_assistant(self):
+        client = OpenAI()
+
+        try:
+            client = OpenAI()
+            return client.beta.assistants.delete(self.__id)
+        except Exception as e:
+            raise ValueError("Failed to delete thread") from e
+
+
+    def list_assistants(self, order: str, limit: str) -> list['Assistant']:
+        client = OpenAI()
+
+        try:
+            asisstants = client.beta.assistants.list(
+                order=order,
+                limit=limit,
+            )
+            return [Assistant(**assistant) for assistant in asisstants]
+        except Exception as e:
+            raise ValueError("Failed to retrieve thread messages") from e
