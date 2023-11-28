@@ -44,6 +44,33 @@ class RunStep:
     last_error: Optional[str]
     step_details: dict
 
+    def retrieve_run_step(self):
+        client = OpenAI()
+
+        try:
+            run_step = client.beta.threads.runs.steps.retrieve(
+                thread_id=self.thread_id,
+                run_id=self.run_id,
+                step_id=self.id
+            )
+            
+            self.object = run_step.object
+            self.created_at = run_step.created_at
+            self.run_id = run_step.run_id
+            self.assistant_id = run_step.assistant_id
+            self.thread_id = run_step.thread_id
+            self.type = run_step.type
+            self.status = run_step.status
+            self.cancelled_at = run_step.cancelled_at
+            self.completed_at = run_step.completed_at
+            self.expired_at = run_step.expired_at
+            self.failed_at = run_step.failed_at
+            self.last_error = run_step.last_error
+            self.step_details = run_step.step_details
+
+        except Exception as e:
+            raise ValueError("Failed to retrive run step.") from e
+
 
 
 @dataclass
@@ -148,7 +175,7 @@ class Run:
             self.__metadata = run.metadata
             
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to create run") from e
         
     def retrieve_run(self):
         """
@@ -184,7 +211,7 @@ class Run:
             self.__metadata = run.metadata
 
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to retrieve run") from e
 
     def modify_run(self, metadata) -> None:
         """
@@ -211,7 +238,7 @@ class Run:
             self.__metadata = run.metadata
 
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to modify run") from e
         
     def list_runs(self) -> list['Run']:
         """
@@ -231,7 +258,7 @@ class Run:
             return runs
 
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to list runs") from e
         
     def submit_tool_outputs(self, tool_outputs: list[dict]) -> None:
         """
@@ -266,7 +293,7 @@ class Run:
             self.__metadata = run.metadata
 
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to submit tool outputs") from e
         
     def cancel_run(self) -> None:
         """
@@ -300,7 +327,7 @@ class Run:
             self.__metadata = run.metadata
 
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to cancel run") from e
         
     def create_thread_and_run(self, assistant_id: str, thread: dict):
         """
@@ -340,6 +367,19 @@ class Run:
             self.__metadata = run.metadata
 
         except Exception as e:
-            raise ValueError(e)
+            raise ValueError("Failed to create thread and run") from e
+        
+    def list_run_steps(self):
+        client = OpenAI()
+
+        try:
+            run_steps = client.beta.threads.runs.steps.list(
+                thread_id=self.__thread_id,
+                run_id=self.__id
+            )
+
+            return [RunStep(**run_step) for run_step in run_steps]
+        except Exception as e:
+            raise ValueError("Failed to list run steps") from e
         
 

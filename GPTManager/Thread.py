@@ -370,11 +370,3 @@ class Thread:
             raise ValueError("Failed to list message files") from e
 
 
-    def upload_file(self):
-        pass
-
-
-    def wait_runs(self):
-        pass
-
-

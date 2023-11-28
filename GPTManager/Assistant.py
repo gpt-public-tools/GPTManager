@@ -3,6 +3,7 @@ from openai import OpenAI
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+
 @dataclass
 class AssistantFile:
     id: str
@@ -180,3 +181,37 @@ class Assistant:
             return AssistantFile(**assistant_file)
         except Exception as e:
             raise ValueError("Failed to create assistant file") from e
+        
+    def retrieve_assistant_file(self, file_id: str) -> 'AssistantFile':
+        client = OpenAI()
+
+        try:
+            assistant_file = client.beta.assistants.files.retrieve(
+                assistant_id=self.__id, 
+                file_id=file_id
+                )
+            return AssistantFile(**assistant_file)
+        except Exception as e:
+            raise ValueError("Failed to retrieve assistant file") from e
+        
+    def delete_assistant_file(self, file_id: str) -> dict:
+        client = OpenAI()
+
+        try:
+            return client.beta.assistants.files.delete(
+                assistant_id=self.__id, 
+                file_id=file_id
+                )
+        except Exception as e:
+            raise ValueError("Failed to delete assistant file") from e
+        
+    def list_assistant_files(self) -> list['AssistantFile']:
+        client = OpenAI()
+
+        try:
+            assistant_files = client.beta.assistants.files.list(
+                assistant_id=self.__id
+                )
+            return [AssistantFile(**assistant_file) for assistant_file in assistant_files]
+        except Exception as e:
+            raise ValueError("Failed to list assistant files") from e
