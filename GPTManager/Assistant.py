@@ -167,14 +167,16 @@ class Assistant:
             raise ValueError("Failed to delete thread") from e
 
 
-    def list_assistants(self, order: str, limit: str) -> list['Assistant']:
+    
+        
+    def create_assistant_file(self, file_id: str) -> 'AssistantFile':
         client = OpenAI()
 
         try:
-            asisstants = client.beta.assistants.list(
-                order=order,
-                limit=limit,
-            )
-            return [Assistant(**assistant) for assistant in asisstants]
+            assistant_file = client.beta.assistants.files.create(
+                assistant_id=self.__id, 
+                file_id=file_id
+                )
+            return AssistantFile(**assistant_file)
         except Exception as e:
-            raise ValueError("Failed to retrieve thread messages") from e
+            raise ValueError("Failed to create assistant file") from e
