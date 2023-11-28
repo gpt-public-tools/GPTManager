@@ -7,3 +7,4 @@ setup.py
 setup.cfg
 pyproject.toml
 clear.sh
+.env

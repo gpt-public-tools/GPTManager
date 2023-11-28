@@ -18,6 +18,32 @@ class Tool:
 
 @dataclass
 class Assistant:
+    """
+    Class for managing OpenAI Assistants.
+
+    Attributes:
+        __id (str): Assistant ID.
+        __object (str): Object type.
+        __created_at (int): Creation date.
+        __name (Optional[str]): Assistant name.
+        __description (Optional[str]): Assistant description.
+        __model (str): Model identifier.
+        __instructions (Optional[str]): Assistant instructions.
+        __tools (List[Tool]): List of tools associated with the assistant.
+        __file_ids (List[Any]): List of file IDs associated with the assistant.
+        __metadata (dict[str, Any]): Assistant metadata.
+
+    Methods:
+        __init__(self, assistant_id: str = None)
+        create_assistant(self, instructions: str, name: str, model: str, tools: list[dict[str, str]] = []) -> 'Assistant'
+        retrieve_assistant(self) -> 'Assistant'
+        modify_assistant(self, instructions: str, name: Optional[str], tools: list[Tool], model: str, file_ids: list[Any] = [])
+        delete_assistant(self)
+        create_assistant_file(self, file_id: str) -> 'AssistantFile'
+        retrieve_assistant_file(self, file_id: str) -> 'AssistantFile'
+        delete_assistant_file(self, file_id: str) -> dict
+        list_assistant_files(self) -> list['AssistantFile']
+    """
     __id: str
     __object: str
     __created_at: int
@@ -31,6 +57,15 @@ class Assistant:
 
 
     def __init__(self, assistant_id: str = None):
+        """
+        Initializes an Assistant object.
+
+        Parameters:
+            assistant_id (str): The ID of the assistant to retrieve. If None, a new assistant will be created.
+
+        Returns:
+            None
+        """
         if assistant_id is not None:
             self.__id = assistant_id
             self.retrieve_assistant()
@@ -47,6 +82,12 @@ class Assistant:
     ) -> 'Assistant':
         """
         Creates a new assistant using the OpenAI client and sets the __assistant attribute.
+
+        Parameters:
+            instructions (str): The instructions for the assistant.
+            name (str): The name of the assistant.
+            model (str): The model identifier.
+            tools (list[dict[str, str]]): The list of tools to be associated with the assistant.
 
         Returns:
             None
@@ -106,7 +147,7 @@ class Assistant:
             self.__metadata = assistant_data.metadata
 
         except Exception as e:
-            raise ValueError("Failed to retreive assistant") from e
+            raise ValueError("Failed to retrieve assistant") from e
 
 
     def modify_assistant(
@@ -159,18 +200,39 @@ class Assistant:
 
 
     def delete_assistant(self):
+        """
+        Deletes the assistant.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If assistant deletion fails.
+        """
         client = OpenAI()
 
         try:
             client = OpenAI()
             return client.beta.assistants.delete(self.__id)
         except Exception as e:
-            raise ValueError("Failed to delete thread") from e
+            raise ValueError("Failed to delete assistant") from e
 
 
     
         
     def create_assistant_file(self, file_id: str) -> 'AssistantFile':
+        """
+        Creates a new assistant file.
+
+        Parameters:
+            file_id (str): The ID of the file.
+
+        Returns:
+            AssistantFile: The created assistant file.
+
+        Raises:
+            ValueError: If assistant file creation fails.
+        """
         client = OpenAI()
 
         try:
@@ -183,6 +245,18 @@ class Assistant:
             raise ValueError("Failed to create assistant file") from e
         
     def retrieve_assistant_file(self, file_id: str) -> 'AssistantFile':
+        """
+        Retrieves an assistant file.
+
+        Parameters:
+            file_id (str): The ID of the file.
+
+        Returns:
+            AssistantFile: The retrieved assistant file.
+
+        Raises:
+            ValueError: If assistant file retrieval fails.
+        """
         client = OpenAI()
 
         try:
@@ -195,6 +269,18 @@ class Assistant:
             raise ValueError("Failed to retrieve assistant file") from e
         
     def delete_assistant_file(self, file_id: str) -> dict:
+        """
+        Deletes an assistant file.
+
+        Parameters:
+            file_id (str): The ID of the file.
+
+        Returns:
+            dict: The response from the API.
+
+        Raises:
+            ValueError: If assistant file deletion fails.
+        """
         client = OpenAI()
 
         try:
@@ -206,6 +292,15 @@ class Assistant:
             raise ValueError("Failed to delete assistant file") from e
         
     def list_assistant_files(self) -> list['AssistantFile']:
+        """
+        Lists all assistant files.
+
+        Returns:
+            list[AssistantFile]: The list of assistant files.
+
+        Raises:
+            ValueError: If listing assistant files fails.
+        """
         client = OpenAI()
 
         try:
