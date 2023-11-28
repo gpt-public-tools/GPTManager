@@ -2,9 +2,6 @@ from dataclasses import dataclass
 from openai import OpenAI
 
 
-from GPTManager import Account
-
-
 @dataclass
 class File:
     id: str

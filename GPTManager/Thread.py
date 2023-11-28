@@ -6,7 +6,7 @@ from typing import Any
 @dataclass
 class TextContent:
     value: str
-    annotations: list[Any] = field(default_factory=list)
+    annotations: list[Any]
 
 @dataclass
 class Content:
@@ -21,11 +21,10 @@ class Message:
     thread_id: str
     role: str
     content: list[Content]
-    file_ids: list[Any] = field(default_factory=list)
+    file_ids: list[Any]
     assistant_id: str
     run_id: str
-    metadata: dict[str, Any] = field(default_factory=dict)
-
+    metadata: dict[str, Any]
 @dataclass
 class MessageFile:
     """
@@ -103,10 +102,10 @@ class Thread:
         try:
             client = OpenAI()
             thread_data = client.beta.threads.create()
-            self.__id = thread_data.get('id', None)
-            self.__object = thread_data.get('object', None)
-            self.__created_at = thread_data.get('created_at', None)
-            self.__metadata = thread_data.get('id', None)
+            self.__id = thread_data.id
+            self.__object = thread_data.object
+            self.__created_at = thread_data.created_at
+            self.__metadata = thread_data.metadata
         except Exception as e:
             raise ValueError("Failed to create thread") from e
 

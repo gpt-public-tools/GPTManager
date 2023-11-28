@@ -1,10 +1,16 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from GPTManager.Thread import Thread, Message
+import openai
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class TestThread(unittest.TestCase):
     def setUp(self):
+        openai.api_key = os.getenv('OPENAI_API_KEY')
         self.thread = Thread()
+        
 
     @patch('GPTManager.Thread.OpenAI')
     def test_create_thread(self, mock_openai):

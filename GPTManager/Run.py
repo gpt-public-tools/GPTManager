@@ -30,7 +30,7 @@ class RunStep:
         step_details (dict): The details of the run step.
     """
     id: str
-    object: str = "thread.run.step"
+    object: str
     created_at: int
     run_id: str
     assistant_id: str
@@ -98,7 +98,7 @@ class Run:
         metadata (dict[str, Any]): The metadata for the run.
     """  
     __id: str
-    __object: str = "thread.run"
+    __object: str
     __created_at: int
     __assistant_id: str
     __thread_id: str
@@ -109,11 +109,11 @@ class Run:
     __failed_at: Optional[int]
     __completed_at: Optional[int]
     __last_error: Optional[str]
-    __model: str = "gpt-4-1106-preview"
+    __model: str
     __instructions: Optional[str]
-    __tools: list[Tool] = [{"type": "retrieval"}, {"type": "code_interpreter"}]
-    __file_ids: list[Any] = field(default_factory=list)
-    __metadata: dict[str, Any] = field(default_factory=dict)
+    __tools: list[Tool]
+    __file_ids: list[Any]
+    __metadata: dict[str, Any]
 
     def __init__(self, thread_id: str|None = None, assistant_id: str|None = None, run_id: str|None = None) -> None:
         """
