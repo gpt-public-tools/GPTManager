@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any
 
 @dataclass
 class TextContent:
@@ -24,10 +24,20 @@ class MessageObject:
     file_ids: list[Any] = field(default_factory=list)
     assistant_id: str
     run_id: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class MessageFileObject:
+    """
+    A class representing a message file.
+
+    Attributes:
+        id (str): The unique identifier of the file.
+        object (str): The type of object, always 'file'.
+        created_at (int): The timestamp of file creation.
+        message_id (str): The unique identifier of the message the file is associated with.
+        file_id (str): The unique identifier of the file.
+    """
     id: str
     object: str
     created_at: int
@@ -35,13 +45,43 @@ class MessageFileObject:
     file_id: str
 
 class Thread:
+    """
+    A class representing a thread.
+
+    Attributes:
+        __id (str): The unique identifier of the thread.
+        __object (str): The type of object, always 'thread'.
+        __created_at (int): The timestamp of thread creation.
+        __metadata (dict): A dictionary containing the metadata of the thread.
+    
+    Methods:
+        create_thread(): Creates a new thread using the OpenAI client and sets the __id, __object, __created_at and __metadata attributes.
+        retrieve_thread(): Retrieves the thread from id using the OpenAI client and sets the __id, __object, __created_at and __metadata attributes.
+        modify_thread(): Modifies the thread  using the OpenAI client and sets the __metadata attribute.
+        delete_thread(): Deletes the thread using the OpenAI client and sets the __thread to None.
+        create_message(): Creates a message for the thread, either from a MessageObject or by specifying individual parameters.
+        retrieve_message(): Retrieves a message from the thread using the message ID.
+        modify_message_metadata(): Modifies the metadata of a specific message identified by its ID.
+        list_thread_messages(): Retrieves a list of messages from the current thread.
+        retrieve_message_file(): Retrieves a specific file associated with a message in the thread.
+        list_message_files(): Lists all files associated with a specific message in the thread.
+        upload_file(): Uploads a file to the thread.
+        wait_runs(): Waits for all runs in the thread to complete.
+    """
     __id: str
     __object: str
     __created_at: int
-    __metadata: Dict[str, Any] = field(default_factory=dict)
+    __metadata: dict[str, Any] = field(default_factory=dict)
 
 
     def __init__(self, thread_id: str|None = None):
+        """
+        Initializes a new thread object.
+        Parameters:
+            thread_id (str): The id of the thread to be retrieved.
+        Returns:
+            None
+        """
         if thread_id is not None:
             self.__id = thread_id
             self.retrieve_thread()
@@ -52,7 +92,8 @@ class Thread:
     def create_thread(self):
         """
         Creates a new thread using the OpenAI client and sets the __id, __object, __created_at and __metadata attributes.
-        
+        Parameters:
+            None
         Returns:
             None
 

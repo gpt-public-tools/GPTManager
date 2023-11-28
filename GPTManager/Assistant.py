@@ -1,25 +1,12 @@
 from openai import OpenAI
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 
 @dataclass
 class Tool:
     type: str
-
-@dataclass
-class AssistantObject:
-    id: str
-    object: str
-    created_at: int
-    name: Optional[str]
-    description: Optional[str]
-    model: str = "gpt-4-1106-preview"
-    instructions: Optional[str]
-    tools: list[Tool]
-    file_ids: list[Any] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class Assistant:
@@ -32,7 +19,7 @@ class Assistant:
     __instructions: Optional[str]
     __tools: list[Tool]
     __file_ids: list[Any] = field(default_factory=list)
-    __metadata: Dict[str, Any] = field(default_factory=dict)
+    __metadata: dict[str, Any] = field(default_factory=dict)
 
 
     def __init__(self, assistant_id: str = None):
@@ -45,15 +32,11 @@ class Assistant:
 
     def create_assistant(
         self, 
-        instructions: str = "You are an asistant", 
-        name: str = "Asistant", 
-        tools: list[Dict[str, str]] = [ 
-            {
-                "type": "code_interpreter"
-            }
-        ], 
-        model: str = "gpt-4-1106-preview"
-    ) -> AssistantObject:
+        instructions: str, 
+        name: str, 
+        model: str,
+        tools: list[dict[str, str]] = [], 
+    ) -> 'Assistant':
         """
         Creates a new assistant using the OpenAI client and sets the __assistant attribute.
 
@@ -89,7 +72,7 @@ class Assistant:
             raise ValueError("Failed to create assistant") from e
 
 
-    def retrieve_assistant(self) -> AssistantObject:
+    def retrieve_assistant(self) -> 'Assistant':
         """
         Retrieves the assistant from id using the OpenAI client and sets the __assistant attribute.
        
@@ -125,7 +108,7 @@ class Assistant:
         tools: list[Tool], 
         model: str, 
         file_ids: list[Any] = field(default_factory=list)
-    ) -> AssistantObject:
+    ) -> 'Assistant':
         """
         Modifies the assistant's details.
 

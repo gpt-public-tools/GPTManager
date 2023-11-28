@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 from openai import OpenAI
 
 @dataclass
@@ -8,24 +8,43 @@ class Tool:
     type: str
     function: object = None
     
-class RunObject:
-    __id: str
-    __object: str = "thread.run"
-    __created_at: int
-    __assistant_id: str
-    __thread_id: str
-    __status: str
-    __started_at: int
-    __expires_at: Optional[int]
-    __cancelled_at: Optional[int]
-    __failed_at: Optional[int]
-    __completed_at: Optional[int]
-    __last_error: Optional[str]
-    __model: str = "gpt-4-1106-preview"
-    __instructions: Optional[str]
-    __tools: list[Tool] = [{"type": "retrieval"}, {"type": "code_interpreter"}]
-    __file_ids: list[Any] = field(default_factory=list)
-    __metadata: Dict[str, Any] = field(default_factory=dict)
+@dataclass
+class RunStep:
+    """
+    A class representing a thread run step.
+    
+    Attributes:
+        id (str): The run step id.
+        object (str): The object type.
+        created_at (int): The time the run step was created.
+        run_id (str): The run id.
+        assistant_id (str): The assistant id.
+        thread_id (str): The thread id.
+        type (str): The type of run step.
+        status (str): The status of the run step.
+        cancelled_at (int): The time the run step was cancelled.
+        completed_at (int): The time the run step was completed.
+        expired_at (int): The time the run step expired.
+        failed_at (int): The time the run step failed.
+        last_error (str): The last error message.
+        step_details (dict): The details of the run step.
+    """
+    id: str
+    object: str = "thread.run.step"
+    created_at: int
+    run_id: str
+    assistant_id: str
+    thread_id: str
+    type: str
+    status: str
+    cancelled_at: Optional[int]
+    completed_at: Optional[int]
+    expired_at: Optional[int]
+    failed_at: Optional[int]
+    last_error: Optional[str]
+    step_details: dict
+
+
 
 @dataclass
 class Run:
@@ -49,7 +68,7 @@ class Run:
         instructions (str): The instructions for the run.
         tools (list[Tool]): The tools used for the run.
         file_ids (list[Any]): The file ids used for the run.
-        metadata (Dict[str, Any]): The metadata for the run.
+        metadata (dict[str, Any]): The metadata for the run.
     """  
     __id: str
     __object: str = "thread.run"
@@ -67,13 +86,13 @@ class Run:
     __instructions: Optional[str]
     __tools: list[Tool] = [{"type": "retrieval"}, {"type": "code_interpreter"}]
     __file_ids: list[Any] = field(default_factory=list)
-    __metadata: Dict[str, Any] = field(default_factory=dict)
+    __metadata: dict[str, Any] = field(default_factory=dict)
 
     def __init__(self, thread_id: str|None = None, assistant_id: str|None = None, run_id: str|None = None) -> None:
         """
         Creates a new thread run or retrieves an existing one.
 
-        Args:
+        Parameters:
             thread_id (str): The thread id.
             assistant_id (str): The assistant id.
             run_id (str): The run id.
@@ -171,7 +190,7 @@ class Run:
         """
         Modifies a thread run.
 
-        Args:
+        Parameters:
             **kwargs: The attributes to modify.
 
         Returns:
@@ -194,7 +213,7 @@ class Run:
         except Exception as e:
             raise ValueError(e)
         
-    def list_runs(self) -> list[RunObject]:
+    def list_runs(self) -> list['Run']:
         """
         Lists all thread runs.
         Returns:
@@ -208,8 +227,119 @@ class Run:
             runs_data = client.beta.threads.runs.list(
                 thread_id=self.__thread_id
             )
-            runs = [RunObject(**run_data) for run_data in runs_data]  # Convert each dict to a RunObject
+            runs = [Run(**run_data) for run_data in runs_data]  # Convert each dict to a RunObject
             return runs
 
         except Exception as e:
             raise ValueError(e)
+        
+    def submit_tool_outputs(self, tool_outputs: list[dict]) -> None:
+        """
+        Submits tool outputs for a thread run.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If the thread_id or assistant_id is not set.
+        """
+        client = OpenAI()
+
+        try:
+            run = client.beta.threads.runs.submit_tool_outputs(
+                thread_id=self.__thread_id,
+                run_id=self.__id,
+                tool_outputs=tool_outputs
+            )
+
+            self.__status = run.status
+            self.__started_at = run.started_at
+            self.__expires_at = run.expires_at
+            self.__cancelled_at = run.cancelled_at
+            self.__failed_at = run.failed_at
+            self.__completed_at = run.completed_at
+            self.__last_error = run.last_error
+            self.__model = run.model
+            self.__instructions = run.instructions
+            self.__tools = run.tools
+            self.__file_ids = run.file_ids
+            self.__metadata = run.metadata
+
+        except Exception as e:
+            raise ValueError(e)
+        
+    def cancel_run(self) -> None:
+        """
+        Cancels a thread run.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If the thread_id or assistant_id is not set.
+        """
+        client = OpenAI()
+
+        try:
+            run = client.beta.threads.runs.cancel(
+                thread_id=self.__thread_id,
+                run_id=self.__id,
+            )
+
+            self.__status = run.status
+            self.__started_at = run.started_at
+            self.__expires_at = run.expires_at
+            self.__cancelled_at = run.cancelled_at
+            self.__failed_at = run.failed_at
+            self.__completed_at = run.completed_at
+            self.__last_error = run.last_error
+            self.__model = run.model
+            self.__instructions = run.instructions
+            self.__tools = run.tools
+            self.__file_ids = run.file_ids
+            self.__metadata = run.metadata
+
+        except Exception as e:
+            raise ValueError(e)
+        
+    def create_thread_and_run(self, assistant_id: str, thread: dict):
+        """
+        Creates a thread and run.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If the thread_id or assistant_id is not set.
+        """
+        client = OpenAI()
+
+        try:
+            run = client.beta.threads.create(
+                assistant_id=assistant_id,
+                **thread
+            )
+            run = client.beta.threads.create_and_run(
+                assistant_id=assistant_id,
+                thread=thread)
+
+            self.__id = run.id
+            self.__object = run.object
+            self.__created_at = run.created_at
+            self.__status = run.status
+            self.__started_at = run.started_at
+            self.__expires_at = run.expires_at
+            self.__cancelled_at = run.cancelled_at
+            self.__failed_at = run.failed_at
+            self.__completed_at = run.completed_at
+            self.__last_error = run.last_error
+            self.__model = run.model
+            self.__instructions = run.instructions
+            self.__tools = run.tools
+            self.__file_ids = run.file_ids
+            self.__metadata = run.metadata
+
+        except Exception as e:
+            raise ValueError(e)
+        
+
