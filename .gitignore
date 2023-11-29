@@ -7,4 +7,5 @@ setup.py
 setup.cfg
 pyproject.toml
 clear.sh
+.vscode
 .env
