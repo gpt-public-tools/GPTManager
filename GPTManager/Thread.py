@@ -24,7 +24,9 @@ class Message:
     file_ids: list[Any]
     assistant_id: str
     run_id: str
-    metadata: dict[str, Any]
+    metadata: dict[str, Any]    
+
+
 @dataclass
 class MessageFile:
     """
@@ -123,9 +125,9 @@ class Thread:
         try:
             client = OpenAI()
             thread_data = client.beta.threads.retrieve(self.__id)
-            self.__object = thread_data.get('object', None)
-            self.__created_at = thread_data.get('created_at', None)
-            self.__metadata = thread_data.get('id', None)
+            self.__object = thread_data.object
+            self.__created_at = thread_data.created_at
+            self.__metadata = thread_data.metadata
         except Exception as e:
             raise ValueError("Failed to retreive thread") from e
 
@@ -146,7 +148,7 @@ class Thread:
                 thread_id = self.__id, 
                 metadata = metadata
             )
-            self.__metadata = thread_data.get('id', None)
+            self.__metadata = thread_data.metadata
         except Exception as e:
             raise ValueError("Failed to modify thread metadata") from e
 
@@ -190,14 +192,14 @@ class Thread:
             ValueError: If message creation fails or returns invalid data.
         """
         if 'message' in kwargs:
-            return self.__create_message_from_message(message=kwargs['message'])
+            return self.__create_message_from_message_object(message=kwargs['message'])
         elif 'role' in kwargs and 'content' in kwargs:
             file_ids = kwargs.get('file_ids', [])
             return self.__create_message_from_params(role=kwargs['role'], content=kwargs['content'], file_ids=file_ids)
         return None
 
 
-    def __create_message_from_message(self, message: Message) -> Message:
+    def __create_message_from_message_object(self, message: Message) -> Message:
         """     
         Creates a message for the thread using a Message.
 
@@ -223,7 +225,7 @@ class Thread:
             raise ValueError("Failed to create message from Message") from e
 
 
-    def __create_message_from_params(self, role, content: str, file_ids = []) -> Message:
+    def __create_message_from_params(self, role: str, content: str, file_ids = []) -> Message:
         """     
         Creates a message for the thread using the provided parameters.
 
@@ -241,7 +243,7 @@ class Thread:
         try:
             client = OpenAI()
             message_data = client.beta.threads.messages.create(
-                self.thread.id,
+                self.__id,
                 role=role,
                 content=content,
                 file_ids=file_ids 
@@ -268,7 +270,7 @@ class Thread:
             client = OpenAI()
             message_data = client.beta.threads.messages.retrieve(
                 message_id=message_id,
-                thread_id=self.thread.id
+                thread_id=self.__id
             )
             return Message(**message_data)
         except Exception as e:
@@ -293,7 +295,7 @@ class Thread:
             client = OpenAI()
             message_data = client.beta.threads.messages.update(
                 message_id=message_id,
-                thread_id=self.thread.id,
+                thread_id=self.__id,
                 metadata=metadata
             )
             return Message(**message_data)
@@ -313,7 +315,7 @@ class Thread:
         """
         try:
             client = OpenAI()
-            messages_data = client.beta.threads.messages.list(self.thread.id)
+            messages_data = client.beta.threads.messages.list(self.__id)
             return [Message(**message) for message in messages_data]
         except Exception as e:
             raise ValueError("Failed to retrieve thread messages") from e
@@ -336,7 +338,7 @@ class Thread:
         try:
             client = OpenAI()
             file_data = client.beta.threads.messages.files.retrieve(
-                thread_id=self.thread.id,
+                thread_id=self.__id,
                 message_id=message_id,
                 file_id=file_id
             )
@@ -361,7 +363,7 @@ class Thread:
         try:
             client = OpenAI()
             files_data = client.beta.threads.messages.files.list(
-                thread_id=self.thread.id,
+                thread_id=self.__id,
                 message_id=message_id
             )
             return [MessageFile(**file) for file in files_data]
