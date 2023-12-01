@@ -9,3 +9,4 @@ pyproject.toml
 clear.sh
 .vscode
 .env
+.DS_Store
