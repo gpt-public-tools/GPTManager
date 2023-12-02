@@ -56,21 +56,35 @@ class Assistant:
     __metadata: dict[str, Any] = field(default_factory=dict)
 
 
-    def __init__(self, assistant_id: str = None):
+    def __init__(self, **kwargs) -> 'Assistant':
         """
         Initializes an Assistant object.
 
         Parameters:
-            assistant_id (str): The ID of the assistant to retrieve. If None, a new assistant will be created.
+            kwargs: A dictionary of keyword arguments. This can include:
+            - assistant_id (str): The ID of the assistant to retrieve. If None, a new assistant will be created.
+            - instructions (str):            
+            - instructions (str): Detailed instructions or guidelines that define the assistant's operational framework or role.
+            - name (str): The name or identifier for the assistant. Used to label or uniquely identify the assistant instance.
+            - model (str): The model identifier specifying the underlying AI or computational model that the assistant will use.
+            - tools (list[dict[str, str]]): A list of tools (each represented as a dictionary) that the assistant can utilize. Each tool in the list should have specific attributes or properties defined as key-value pairs.
+
 
         Returns:
             None
         """
-        if assistant_id is not None:
-            self.__id = assistant_id
+        if 'assistant_id' in kwargs and kwargs['assistant_id'] is not None:
+            self.__id = kwargs['assistant_id']
             self.retrieve_assistant()
-        else:
-            self.create_assistant()
+        elif 'instructions' in kwargs and 'name' in kwargs and 'model' in kwargs:
+            tools = kwargs.get('tools', [])
+            self.create_assistant(
+                instructions=kwargs['instructions'], 
+                name=kwargs['name'], 
+                model=kwargs['model'], 
+                tools=tools
+            )
+        return None
 
 
     def create_assistant(
@@ -98,7 +112,6 @@ class Assistant:
         client = OpenAI()
 
         try:
-            
             assistant_data = client.beta.assistants.create(
                 instructions=instructions,
                 name=name,

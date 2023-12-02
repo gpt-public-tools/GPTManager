@@ -1,12 +1,40 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from GPTManager.Thread import Thread, Message
+from GPTManager.Thread import Thread, Message, MessageFile
 import openai
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
 class TestThread(unittest.TestCase):
+    mock_message_data = {
+        "id": "test_message_id",
+        'role': 'user', 
+        'file_ids': [],
+        "object": "thread.message",
+        "created_at": 123456789,
+        "thread_id": "test_thread_id",
+        "content": [
+            {
+                "type": "text",
+                "text": {
+                    "value": "Hello",
+                    "annotations": []
+                }
+            }
+        ],
+        "assistant_id": None,
+        "run_id": None,
+        "metadata": {"key": "value"}
+    }
+
+    mock_message_file_data = {
+        'id': 'test_file_id', 
+        'object': 'thread.message.file', 
+        'created_at': 123456789,
+        'message_id': 'test_message_id'
+    }
+    
     def setUp(self):
         openai.api_key = os.getenv('OPENAI_API_KEY')
         self.thread = Thread()
@@ -138,27 +166,7 @@ class TestThread(unittest.TestCase):
     @patch('GPTManager.Thread.OpenAI')
     def test_create_message_with_params(self, mock_openai):
         # Mocking the OpenAI client's response for message creation
-        mock_message_data = {
-            "id": "test_message_id",
-            'role': 'user', 
-            'file_ids': [],
-            "object": "thread.message",
-            "created_at": 123456789,
-            "thread_id": "test_thread_id",
-            "content": [
-                {
-                    "type": "text",
-                    "text": {
-                        "value": "Hello",
-                        "annotations": []
-                    }
-                }
-            ],
-            "assistant_id": None,
-            "run_id": None,
-            "metadata": {}
-        }
-        mock_openai.return_value.beta.threads.messages.create.return_value = mock_message_data
+        mock_openai.return_value.beta.threads.messages.create.return_value = self.mock_message_data
 
         result = self.thread.create_message(role='user', content='Hello')
 
@@ -178,6 +186,81 @@ class TestThread(unittest.TestCase):
         )
 
 
+    @patch('GPTManager.Thread.OpenAI')
+    def test_retrieve_message(self, mock_openai):
+        # Mocking the OpenAI client's response for message retrieval
+        mock_openai.return_value.beta.threads.messages.retrieve.return_value = self.mock_message_data
+
+        result = self.thread.retrieve_message('test_message_id')
+
+        self.assertIsInstance(result, Message)
+        self.assertEqual(result.id, 'test_message_id')
+        self.assertEqual(
+            result.content, 
+            [
+                {
+                    "type": "text",
+                    "text": {
+                        "value": "Hello",
+                        "annotations": []
+                    }
+                }
+            ]
+        )
+    
+    @patch('GPTManager.Thread.OpenAI')
+    def test_modify_message_metadata(self, mock_openai):
+        # Mocking the OpenAI client's response for message metadata update
+        mock_message_data = self.mock_message_data
+        mock_message_data['metadata'] = {"test_key": "test_value"}
+        mock_openai.return_value.beta.threads.messages.update.return_value = mock_message_data
+
+        result = self.thread.modify_message_metadata('test_message_id', {'test_key': 'test_value'})
+
+        self.assertIsInstance(result, Message)
+        self.assertEqual(result.id, 'test_message_id')
+        self.assertEqual(result.metadata, {'test_key': 'test_value'})
+
+    @patch('GPTManager.Thread.OpenAI')
+    def test_list_thread_messages(self, mock_openai):
+        # Mocking the OpenAI client's response for listing thread messages
+        mock_messages_data = [
+            {**self.mock_message_data, "id" : "message_1" },
+            {**self.mock_message_data, "id" : "message_2" },
+        ]
+        mock_openai.return_value.beta.threads.messages.list.return_value = mock_messages_data
+
+        result = self.thread.list_thread_messages()
+
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all((message, Message) for message in result))
+
+    @patch('GPTManager.Thread.OpenAI')
+    def test_retrieve_message_file(self, mock_openai):
+        # Mocking the OpenAI client's response for retrieving a message file
+        mock_openai.return_value.beta.threads.messages.files.retrieve.return_value = self.mock_message_file_data
+
+        result = self.thread.retrieve_message_file('test_message_id', 'test_file_id')
+
+        self.assertIsInstance(result, MessageFile)
+        self.assertEqual(result.id, 'test_file_id')
+
+
+    @patch('GPTManager.Thread.OpenAI')
+    def test_list_message_files(self, mock_openai):
+        # Mocking the OpenAI client's response for listing message files
+        mock_message_files_data = [
+            {**self.mock_message_file_data, 'id': 'file_1'},
+            {**self.mock_message_file_data, 'id': 'file_2'}
+        ]
+        mock_openai.return_value.beta.threads.messages.files.list.return_value = mock_message_files_data
+
+        result = self.thread.list_message_files('test_message_id')
+
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all(isinstance(file, MessageFile) for file in result))
 
 
 if __name__ == '__main__':

@@ -43,7 +43,7 @@ class MessageFile:
     object: str
     created_at: int
     message_id: str
-    file_id: str
+
 
 class Thread:
     """
