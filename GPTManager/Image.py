@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from openai import OpenAI
+from typing import Optional
 
 @dataclass
 class Image:
@@ -16,11 +17,12 @@ class Image:
         create_image_edit(image: str, mask: str, prompt: str, n: int, size: str): Creates an edited image.
         create_image_variation(image: str, n: int, size: str): Creates a variation of an image.
     """
-    b64_json: str
+    b64_json: Optional[str]
     url: str
-    revised_prompt: str
-    
-    def create_image(self, model: str, prompt: str, n: int, size: str):
+    revised_prompt: Optional[str]
+
+
+    def create_image(self, prompt: str, model: str = None, n: int = None, size: str = None):
         """
         Creates an image.
 
@@ -39,16 +41,21 @@ class Image:
         client = OpenAI()
 
         try:
-            image_data = client.images.generate(
-                model=model,
-                prompt=prompt,
-                n=n,
-                size=size
-            )
+            kwargs = {
+                "prompt": prompt,
+            }
+            if model is not None:
+                kwargs["model"] = model
+            if n is not None:
+                kwargs["n"] = n
+            if size is not None:
+                kwargs["size"] = size
 
-            self.b64_json = image_data['b64']
+            image_data = client.images.generate(**kwargs)
+
+            self.b64_json = image_data.get('b64_json', '')
             self.url = image_data['url']
-            self.revised_prompt = image_data['revised_prompt']
+            self.revised_prompt = image_data.get('revised_prompt', '')
         except Exception as e:
             raise ValueError(f'Unable to create image: {e}')
         
