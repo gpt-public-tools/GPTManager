@@ -1,5 +1,9 @@
 from openai import OpenAI
 from . import File, Assistant
+import openai
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class Organization:
 
@@ -18,6 +22,7 @@ class Organization:
             ValueError: If the file list fails or returns invalid data.
         """
         client = OpenAI()
+        openai.api_key = os.getenv('OPENAI_API_KEY')
 
         try:
             files_response = client.files.list()
@@ -41,13 +46,14 @@ class Organization:
             ValueError: If the assistant list fails or returns invalid data.
         """
         client = OpenAI()
+        openai.api_key = os.getenv('OPENAI_API_KEY')
 
         try:
             asisstants = client.beta.assistants.list(
                 order=order,
                 limit=limit,
             )
-            return [Assistant(**assistant) for assistant in asisstants]
+            return [Assistant(**assistant) for assistant in asisstants['data']]
         except Exception as e:
             raise ValueError("Failed to retrieve thread messages") from e
 
