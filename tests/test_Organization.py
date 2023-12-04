@@ -67,8 +67,8 @@ class TestOrganization(unittest.TestCase):
         result = Organization.list_assistants(order='asc', limit='10')
         # Assertions
         self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]._Assistant__object, 'assistant')
-        self.assertEqual(result[1]._Assistant__object, 'assistant')
+        self.assertEqual(result[0].object, 'assistant')
+        self.assertEqual(result[1].object, 'assistant')
 
 
 if __name__ == '__main__':

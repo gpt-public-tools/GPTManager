@@ -3,6 +3,10 @@ from openai import OpenAI
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from GPTManager.Client import Client
 
 @dataclass
 class AssistantFile:
@@ -22,16 +26,16 @@ class Assistant:
     Class for managing OpenAI Assistants.
 
     Attributes:
-        __id (str): Assistant ID.
-        __object (str): Object type.
-        __created_at (int): Creation date.
-        __name (Optional[str]): Assistant name.
-        __description (Optional[str]): Assistant description.
-        __model (str): Model identifier.
-        __instructions (Optional[str]): Assistant instructions.
-        __tools (List[Tool]): List of tools associated with the assistant.
-        __file_ids (List[Any]): List of file IDs associated with the assistant.
-        __metadata (dict[str, Any]): Assistant metadata.
+        id (str): Assistant ID.
+        object (str): Object type.
+        created_at (int): Creation date.
+        name (Optional[str]): Assistant name.
+        description (Optional[str]): Assistant description.
+        model (str): Model identifier.
+        instructions (Optional[str]): Assistant instructions.
+        tools (List[Tool]): List of tools associated with the assistant.
+        file_ids (List[Any]): List of file IDs associated with the assistant.
+        metadata (dict[str, Any]): Assistant metadata.
 
     Methods:
         __init__(self, assistant_id: str = None)
@@ -44,16 +48,16 @@ class Assistant:
         delete_assistant_file(self, file_id: str) -> dict
         list_assistant_files(self) -> list['AssistantFile']
     """
-    __id: str
-    __object: str
-    __created_at: int
-    __name: Optional[str]
-    __description: Optional[str]
-    __model: str
-    __instructions: Optional[str]
-    __tools: list[Tool]
-    __file_ids: list[Any] = field(default_factory=list)
-    __metadata: dict[str, Any] = field(default_factory=dict)
+    id: str
+    object: str
+    created_at: int
+    name: Optional[str]
+    description: Optional[str]
+    model: str
+    instructions: Optional[str]
+    tools: list[Tool]
+    file_ids: list[Any] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
     def __init__(self, **kwargs) -> 'Assistant':
@@ -74,7 +78,7 @@ class Assistant:
             None
         """
         if 'assistant_id' in kwargs and kwargs['assistant_id'] is not None:
-            self.__id = kwargs['assistant_id']
+            self.id = kwargs['assistant_id']
             self.retrieve_assistant()
         elif 'instructions' in kwargs and 'name' in kwargs and 'model' in kwargs:
             tools = kwargs.get('tools', [])
@@ -95,7 +99,7 @@ class Assistant:
         tools: list[dict[str, str]] = [], 
     ) -> 'Assistant':
         """
-        Creates a new assistant using the OpenAI client and sets the __assistant attribute.
+        Creates a new assistant using the OpenAI client and sets the assistant attribute.
 
         Parameters:
             instructions (str): The instructions for the assistant.
@@ -109,7 +113,7 @@ class Assistant:
         Raises:
             ValueError: If the assistant creation fails or returns invalid data.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             assistant_data = client.beta.assistants.create(
@@ -119,16 +123,16 @@ class Assistant:
                 model=model,
             )
 
-            self.__id = assistant_data.id
-            self.__object = assistant_data.object
-            self.__created_at = assistant_data.created_at
-            self.__name = assistant_data.name
-            self.__description = assistant_data.description
-            self.__model = assistant_data.model
-            self.__instructions = assistant_data.instructions
-            self.__tools = assistant_data.tools
-            self.__file_ids = assistant_data.file_ids
-            self.__metadata = assistant_data.metadata
+            self.id = assistant_data.id
+            self.object = assistant_data.object
+            self.created_at = assistant_data.created_at
+            self.name = assistant_data.name
+            self.description = assistant_data.description
+            self.model = assistant_data.model
+            self.instructions = assistant_data.instructions
+            self.tools = assistant_data.tools
+            self.file_ids = assistant_data.file_ids
+            self.metadata = assistant_data.metadata
 
         except Exception as e:
             raise ValueError("Failed to create assistant") from e
@@ -136,7 +140,7 @@ class Assistant:
 
     def retrieve_assistant(self) -> 'Assistant':
         """
-        Retrieves the assistant from id using the OpenAI client and sets the __assistant attribute.
+        Retrieves the assistant from id using the OpenAI client and sets the assistant attribute.
        
          Returns:
             None
@@ -144,20 +148,20 @@ class Assistant:
         Raises:
             ValueError: If the assistant retrieval fails or returns invalid data.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
-            assistant_data = client.beta.assistants.retrieve(self.__id)
+            assistant_data = client.beta.assistants.retrieve(self.id)
 
-            self.__object = assistant_data.object
-            self.__created_at = assistant_data.created_at
-            self.__name = assistant_data.name
-            self.__description = assistant_data.description
-            self.__model = assistant_data.model
-            self.__instructions = assistant_data.instructions
-            self.__tools = assistant_data.tools
-            self.__file_ids = assistant_data.file_ids
-            self.__metadata = assistant_data.metadata
+            self.object = assistant_data.object
+            self.created_at = assistant_data.created_at
+            self.name = assistant_data.name
+            self.description = assistant_data.description
+            self.model = assistant_data.model
+            self.instructions = assistant_data.instructions
+            self.tools = assistant_data.tools
+            self.file_ids = assistant_data.file_ids
+            self.metadata = assistant_data.metadata
 
         except Exception as e:
             raise ValueError("Failed to retrieve assistant") from e
@@ -188,9 +192,9 @@ class Assistant:
             ValueError: If assistant modification fails or returns invalid data.
         """
         try:
-            client = OpenAI()
+            client = Client.get_instance()
             assistant_data = client.beta.assistants.update(
-                assistant_id=self.__id,
+                assistant_id=self.id,
                 instructions=instructions,
                 name=name,
                 tools=[tool.__dict__ for tool in tools],  # Convert Tool objects to dictionaries
@@ -198,15 +202,15 @@ class Assistant:
                 file_ids=file_ids
             )
             
-            self.__object = assistant_data.object
-            self.__created_at = assistant_data.created_at
-            self.__name = assistant_data.name
-            self.__description = assistant_data.description
-            self.__model = assistant_data.model
-            self.__instructions = assistant_data.instructions
-            self.__tools = assistant_data.tools
-            self.__file_ids = assistant_data.file_ids
-            self.__metadata = assistant_data.metadata
+            self.object = assistant_data.object
+            self.created_at = assistant_data.created_at
+            self.name = assistant_data.name
+            self.description = assistant_data.description
+            self.model = assistant_data.model
+            self.instructions = assistant_data.instructions
+            self.tools = assistant_data.tools
+            self.file_ids = assistant_data.file_ids
+            self.metadata = assistant_data.metadata
 
         except Exception as e:
             raise ValueError("Failed to modify assistant") from e
@@ -222,11 +226,11 @@ class Assistant:
         Raises:
             ValueError: If assistant deletion fails.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
-            client = OpenAI()
-            return client.beta.assistants.delete(self.__id)
+            client = Client.get_instance()
+            return client.beta.assistants.delete(self.id)
         except Exception as e:
             raise ValueError("Failed to delete assistant") from e
 
@@ -246,11 +250,11 @@ class Assistant:
         Raises:
             ValueError: If assistant file creation fails.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             assistant_file = client.beta.assistants.files.create(
-                assistant_id=self.__id, 
+                assistant_id=self.id, 
                 file_id=file_id
                 )
             return AssistantFile(**assistant_file)
@@ -270,11 +274,11 @@ class Assistant:
         Raises:
             ValueError: If assistant file retrieval fails.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             assistant_file = client.beta.assistants.files.retrieve(
-                assistant_id=self.__id, 
+                assistant_id=self.id, 
                 file_id=file_id
                 )
             return AssistantFile(**assistant_file)
@@ -294,11 +298,11 @@ class Assistant:
         Raises:
             ValueError: If assistant file deletion fails.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             return client.beta.assistants.files.delete(
-                assistant_id=self.__id, 
+                assistant_id=self.id, 
                 file_id=file_id
                 )
         except Exception as e:
@@ -314,11 +318,11 @@ class Assistant:
         Raises:
             ValueError: If listing assistant files fails.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             assistant_files = client.beta.assistants.files.list(
-                assistant_id=self.__id
+                assistant_id=self.id
                 )
             return [AssistantFile(**assistant_file) for assistant_file in assistant_files]
         except Exception as e:

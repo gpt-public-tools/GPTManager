@@ -1,7 +1,11 @@
 
 from dataclasses import dataclass, field
 from typing import Any, Optional
-from openai import OpenAI
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from GPTManager.Client import Client
 
 @dataclass
 class Tool:
@@ -45,7 +49,7 @@ class RunStep:
     step_details: dict
 
     def retrieve_run_step(self):
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run_step = client.beta.threads.runs.steps.retrieve(
@@ -97,23 +101,23 @@ class Run:
         file_ids (list[Any]): The file ids used for the run.
         metadata (dict[str, Any]): The metadata for the run.
     """  
-    __id: str
-    __object: str
-    __created_at: int
-    __assistant_id: str
-    __thread_id: str
-    __status: str
-    __started_at: int
-    __expires_at: Optional[int]
-    __cancelled_at: Optional[int]
-    __failed_at: Optional[int]
-    __completed_at: Optional[int]
-    __last_error: Optional[str]
-    __model: str
-    __instructions: Optional[str]
-    __tools: list[Tool]
-    __file_ids: list[Any]
-    __metadata: dict[str, Any]
+    id: str
+    object: str
+    created_at: int
+    assistant_id: str
+    thread_id: str
+    status: str
+    started_at: int
+    expires_at: Optional[int]
+    cancelled_at: Optional[int]
+    failed_at: Optional[int]
+    completed_at: Optional[int]
+    last_error: Optional[str]
+    model: str
+    instructions: Optional[str]
+    tools: list[Tool]
+    file_ids: list[Any]
+    metadata: dict[str, Any]
 
     def __init__(self, thread_id: str|None = None, assistant_id: str|None = None, run_id: str|None = None) -> None:
         """
@@ -131,12 +135,12 @@ class Run:
             ValueError: If the thread_id or assistant_id is not set.
         """
         if run_id is not None and thread_id is not None:
-            self.__id = run_id
-            self.__thread_id = thread_id
+            self.id = run_id
+            self.thread_id = thread_id
             self.retrieve_run()
         elif thread_id is not None and assistant_id is not None:
-            self.__assistant_id = assistant_id
-            self.__thread_id = thread_id
+            self.assistant_id = assistant_id
+            self.thread_id = thread_id
             self.create_run()
         
 
@@ -150,29 +154,31 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run = client.beta.threads.runs.create(
-                thread_id=self.__thread_id,
-                assistant_id=self.__assistant_id,
+                thread_id=self.thread_id,
+                assistant_id=self.assistant_id,
             )
 
-            self.__id = run.id
-            self.__object = run.object
-            self.__created_at = run.created_at
-            self.__status = run.status
-            self.__started_at = run.started_at
-            self.__expires_at = run.expires_at
-            self.__cancelled_at = run.cancelled_at
-            self.__failed_at = run.failed_at
-            self.__completed_at = run.completed_at
-            self.__last_error = run.last_error
-            self.__model = run.model
-            self.__instructions = run.instructions
-            self.__tools = run.tools
-            self.__file_ids = run.file_ids
-            self.__metadata = run.metadata
+
+
+            self.id = run.id
+            self.object = run.object
+            self.created_at = run.created_at
+            self.status = run.status
+            self.started_at = run.started_at
+            self.expires_at = run.expires_at
+            self.cancelled_at = run.cancelled_at
+            self.failed_at = run.failed_at
+            self.completed_at = run.completed_at
+            self.last_error = run.last_error
+            self.model = run.model
+            self.instructions = run.instructions
+            self.tools = run.tools
+            self.file_ids = run.file_ids
+            self.metadata = run.metadata
             
         except Exception as e:
             raise ValueError("Failed to create run") from e
@@ -187,28 +193,28 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run = client.beta.threads.runs.retrieve(
-                thread_id=self.__thread_id,
-                run_id=self.__id,
+                thread_id=self.thread_id,
+                run_id=self.id,
             )
 
-            self.__object = run.object
-            self.__created_at = run.created_at
-            self.__status = run.status
-            self.__started_at = run.started_at
-            self.__expires_at = run.expires_at
-            self.__cancelled_at = run.cancelled_at
-            self.__failed_at = run.failed_at
-            self.__completed_at = run.completed_at
-            self.__last_error = run.last_error
-            self.__model = run.model
-            self.__instructions = run.instructions
-            self.__tools = run.tools
-            self.__file_ids = run.file_ids
-            self.__metadata = run.metadata
+            self.object = run.object
+            self.created_at = run.created_at
+            self.status = run.status
+            self.started_at = run.started_at
+            self.expires_at = run.expires_at
+            self.cancelled_at = run.cancelled_at
+            self.failed_at = run.failed_at
+            self.completed_at = run.completed_at
+            self.last_error = run.last_error
+            self.model = run.model
+            self.instructions = run.instructions
+            self.tools = run.tools
+            self.file_ids = run.file_ids
+            self.metadata = run.metadata
 
         except Exception as e:
             raise ValueError("Failed to retrieve run") from e
@@ -226,16 +232,16 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run = client.beta.threads.runs.update(
-                thread_id=self.__thread_id,
-                run_id=self.__id,
+                thread_id=self.thread_id,
+                run_id=self.id,
                 metadata=metadata
             )
 
-            self.__metadata = run.metadata
+            self.metadata = run.metadata
 
         except Exception as e:
             raise ValueError("Failed to modify run") from e
@@ -248,11 +254,11 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set, or if the API call fails.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             runs_data = client.beta.threads.runs.list(
-                thread_id=self.__thread_id
+                thread_id=self.thread_id
             )
             runs = [Run(**run_data) for run_data in runs_data]  # Convert each dict to a RunObject
             return runs
@@ -270,27 +276,27 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run = client.beta.threads.runs.submit_tool_outputs(
-                thread_id=self.__thread_id,
-                run_id=self.__id,
+                thread_id=self.thread_id,
+                run_id=self.id,
                 tool_outputs=tool_outputs
             )
 
-            self.__status = run.status
-            self.__started_at = run.started_at
-            self.__expires_at = run.expires_at
-            self.__cancelled_at = run.cancelled_at
-            self.__failed_at = run.failed_at
-            self.__completed_at = run.completed_at
-            self.__last_error = run.last_error
-            self.__model = run.model
-            self.__instructions = run.instructions
-            self.__tools = run.tools
-            self.__file_ids = run.file_ids
-            self.__metadata = run.metadata
+            self.status = run.status
+            self.started_at = run.started_at
+            self.expires_at = run.expires_at
+            self.cancelled_at = run.cancelled_at
+            self.failed_at = run.failed_at
+            self.completed_at = run.completed_at
+            self.last_error = run.last_error
+            self.model = run.model
+            self.instructions = run.instructions
+            self.tools = run.tools
+            self.file_ids = run.file_ids
+            self.metadata = run.metadata
 
         except Exception as e:
             raise ValueError("Failed to submit tool outputs") from e
@@ -305,26 +311,26 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run = client.beta.threads.runs.cancel(
-                thread_id=self.__thread_id,
-                run_id=self.__id,
+                thread_id=self.thread_id,
+                run_id=self.id,
             )
 
-            self.__status = run.status
-            self.__started_at = run.started_at
-            self.__expires_at = run.expires_at
-            self.__cancelled_at = run.cancelled_at
-            self.__failed_at = run.failed_at
-            self.__completed_at = run.completed_at
-            self.__last_error = run.last_error
-            self.__model = run.model
-            self.__instructions = run.instructions
-            self.__tools = run.tools
-            self.__file_ids = run.file_ids
-            self.__metadata = run.metadata
+            self.status = run.status
+            self.started_at = run.started_at
+            self.expires_at = run.expires_at
+            self.cancelled_at = run.cancelled_at
+            self.failed_at = run.failed_at
+            self.completed_at = run.completed_at
+            self.last_error = run.last_error
+            self.model = run.model
+            self.instructions = run.instructions
+            self.tools = run.tools
+            self.file_ids = run.file_ids
+            self.metadata = run.metadata
 
         except Exception as e:
             raise ValueError("Failed to cancel run") from e
@@ -339,7 +345,7 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run = client.beta.threads.create(
@@ -350,32 +356,32 @@ class Run:
                 assistant_id=assistant_id,
                 thread=thread)
 
-            self.__id = run.id
-            self.__object = run.object
-            self.__created_at = run.created_at
-            self.__status = run.status
-            self.__started_at = run.started_at
-            self.__expires_at = run.expires_at
-            self.__cancelled_at = run.cancelled_at
-            self.__failed_at = run.failed_at
-            self.__completed_at = run.completed_at
-            self.__last_error = run.last_error
-            self.__model = run.model
-            self.__instructions = run.instructions
-            self.__tools = run.tools
-            self.__file_ids = run.file_ids
-            self.__metadata = run.metadata
+            self.id = run.id
+            self.object = run.object
+            self.created_at = run.created_at
+            self.status = run.status
+            self.started_at = run.started_at
+            self.expires_at = run.expires_at
+            self.cancelled_at = run.cancelled_at
+            self.failed_at = run.failed_at
+            self.completed_at = run.completed_at
+            self.last_error = run.last_error
+            self.model = run.model
+            self.instructions = run.instructions
+            self.tools = run.tools
+            self.file_ids = run.file_ids
+            self.metadata = run.metadata
 
         except Exception as e:
             raise ValueError("Failed to create thread and run") from e
         
     def list_run_steps(self):
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             run_steps = client.beta.threads.runs.steps.list(
-                thread_id=self.__thread_id,
-                run_id=self.__id
+                thread_id=self.thread_id,
+                run_id=self.id
             )
 
             return [RunStep(**run_step) for run_step in run_steps]
