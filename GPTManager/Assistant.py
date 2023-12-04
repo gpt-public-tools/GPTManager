@@ -234,8 +234,6 @@ class Assistant:
         except Exception as e:
             raise ValueError("Failed to delete assistant") from e
 
-
-    
         
     def create_assistant_file(self, file_id: str) -> 'AssistantFile':
         """
@@ -261,6 +259,7 @@ class Assistant:
         except Exception as e:
             raise ValueError("Failed to create assistant file") from e
         
+
     def retrieve_assistant_file(self, file_id: str) -> 'AssistantFile':
         """
         Retrieves an assistant file.
@@ -285,6 +284,7 @@ class Assistant:
         except Exception as e:
             raise ValueError("Failed to retrieve assistant file") from e
         
+
     def delete_assistant_file(self, file_id: str) -> dict:
         """
         Deletes an assistant file.
@@ -307,6 +307,7 @@ class Assistant:
                 )
         except Exception as e:
             raise ValueError("Failed to delete assistant file") from e
+        
         
     def list_assistant_files(self) -> list['AssistantFile']:
         """

@@ -183,6 +183,7 @@ class Run:
         except Exception as e:
             raise ValueError("Failed to create run") from e
         
+
     def retrieve_run(self):
         """
         Retrieves a thread run.
@@ -218,6 +219,7 @@ class Run:
 
         except Exception as e:
             raise ValueError("Failed to retrieve run") from e
+
 
     def modify_run(self, metadata) -> None:
         """
