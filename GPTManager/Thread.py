@@ -397,7 +397,7 @@ class Thread:
                             metadata=message.metadata,
                         ) 
                         for message 
-                        in messages_data
+                        in messages_data.data
                     ]
         except Exception as e:
             raise ValueError("Failed to retrieve thread messages") from e
@@ -454,7 +454,16 @@ class Thread:
                 thread_id=self.id,
                 message_id=message_id
             )
-            return [MessageFile(**file) for file in files_data]
+            return [
+                        MessageFile(
+                            id=message_file.id,
+                            object=message_file.object,
+                            created_at=message_file.created_at,
+                            message_id=message_file.message_id
+                        ) 
+                        for message_file 
+                        in files_data.data
+                    ]
         except Exception as e:
             raise ValueError("Failed to list message files") from e
 

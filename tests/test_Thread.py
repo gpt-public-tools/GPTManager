@@ -53,9 +53,20 @@ class TestThread(unittest.TestCase):
         metadata= {"key": "value"}
     )
 
+    mock_messages_list_data = MagicMock(
+        object = "list",
+        data = [
+            mock_message_data,
+            mock_message_data
+        ],
+        first_id= "test_message_id",
+        last_id= "test_message_id",
+        has_more= False
+    )
+
     mock_message_modify_data = MagicMock(
         id= "test_message_id",
-        role= 'user', 
+        role= "user", 
         file_ids= [],
         object= "thread.message",
         created_at= 123456789,
@@ -80,6 +91,17 @@ class TestThread(unittest.TestCase):
         created_at = 123456789,
         message_id = 'test_message_id'
     )
+
+    mock_message_file_list_data = MagicMock(
+        object = "list",
+        data = [
+            mock_message_file_data,
+            mock_message_file_data
+        ],
+        first_id= "test_message_id",
+        last_id= "test_message_id",
+        has_more= False
+    )
     
                     
     @patch('GPTManager.Client.OpenAI')
@@ -93,8 +115,9 @@ class TestThread(unittest.TestCase):
         mock_openai.return_value.beta.threads.messages.create.return_value = self.mock_message_data
         mock_openai.return_value.beta.threads.messages.retrieve.return_value = self.mock_message_data
         mock_openai.return_value.beta.threads.messages.update.return_value = self.mock_message_modify_data
-        # mock_openai.return_value.beta.threads.messages.list.return_value = self.mock_messages_data
+        mock_openai.return_value.beta.threads.messages.list.return_value = self.mock_messages_list_data
         mock_openai.return_value.beta.threads.messages.files.retrieve.return_value = self.mock_message_file_data
+        mock_openai.return_value.beta.threads.messages.files.list.return_value = self.mock_message_file_list_data
 
         self.thread = Thread()
     
@@ -207,13 +230,13 @@ class TestThread(unittest.TestCase):
         self.assertEqual(result.id, 'test_message_id')
         self.assertEqual(result.metadata, {'test_key': 'test_value'})
 
-    # @patch('GPTManager.Client.OpenAI')
-    # def test_list_thread_messages(self, mock_openai):
-    #     result = self.thread.list_thread_messages()
+    @patch('GPTManager.Client.OpenAI')
+    def test_list_thread_messages(self, mock_openai):
+        result = self.thread.list_thread_messages()
 
-    #     self.assertIsInstance(result, list)
-    #     self.assertEqual(len(result), 2)
-    #     self.assertTrue(all((message, Message) for message in result))
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all((message, Message) for message in result))
 
     @patch('GPTManager.Client.OpenAI')
     def test_retrieve_message_file(self, mock_openai):
@@ -223,20 +246,15 @@ class TestThread(unittest.TestCase):
         self.assertEqual(result.id, 'test_file_id')
 
 
-    # @patch('GPTManager.Client.OpenAI')
-    # def test_list_message_files(self, mock_openai):
-    #     # Mocking the OpenAI client's response for listing message files
-    #     mock_message_files_data = [
-    #         {**self.mock_message_file_data, 'id': 'file_1'},
-    #         {**self.mock_message_file_data, 'id': 'file_2'}
-    #     ]
-    #     mock_openai.return_value.beta.threads.messages.files.list.return_value = mock_message_files_data
+    @patch('GPTManager.Client.OpenAI')
+    def test_list_message_files(self, mock_openai):
+        
 
-    #     result = self.thread.list_message_files('test_message_id')
+        result = self.thread.list_message_files('test_message_id')
 
-    #     self.assertIsInstance(result, list)
-    #     self.assertEqual(len(result), 2)
-    #     self.assertTrue(all(isinstance(file, MessageFile) for file in result))
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all(isinstance(file, MessageFile) for file in result))
 
 
 if __name__ == '__main__':
