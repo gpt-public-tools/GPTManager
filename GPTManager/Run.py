@@ -262,7 +262,15 @@ class Run:
             runs_data = client.beta.threads.runs.list(
                 thread_id=self.thread_id
             )
-            runs = [Run(**run_data) for run_data in runs_data]  # Convert each dict to a RunObject
+            runs = [
+                        Run(
+                            thread_id=self.thread_id,
+                            assistant_id=self.assistant_id,
+                            run_id=run_data.id
+                        ) 
+                        for run_data 
+                        in runs_data.data
+                    ]  # Convert each dict to a RunObject
             return runs
 
         except Exception as e:
