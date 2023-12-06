@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from GPTManager.Client import Client
-from . import Run
+from .Run import Run
 
 
 import openai
@@ -485,7 +485,6 @@ class Thread:
             runs_data = client.beta.threads.runs.list(
                 thread_id=self.id
             )
-
             return [
                 Run(
                     id = run_data.id,
@@ -504,7 +503,7 @@ class Thread:
                     file_ids = run_data.file_ids,
                     metadata = run_data.metadata,
                     thread_id=run_data.thread_id,
-                    assistant_id=run_data.assistant_id,
+                    assistant_id=run_data.assistant_id
                 ) 
                 for run_data 
                 in runs_data.data
