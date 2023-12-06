@@ -6,6 +6,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from GPTManager.Client import Client
+from GPTManager.Thread import Message_Base
 
 @dataclass
 class Tool:
@@ -161,8 +162,6 @@ class Run:
                 thread_id=self.thread_id,
                 assistant_id=self.assistant_id,
             )
-
-
 
             self.id = run.id
             self.object = run.object
@@ -329,6 +328,7 @@ class Run:
                 run_id=self.id,
             )
 
+            self.object = run.object
             self.status = run.status
             self.started_at = run.started_at
             self.expires_at = run.expires_at
@@ -345,7 +345,7 @@ class Run:
         except Exception as e:
             raise ValueError("Failed to cancel run") from e
         
-    def create_thread_and_run(self, assistant_id: str, thread: dict):
+    def create_thread_and_run(self, messages: list[dict]):
         """
         Creates a thread and run.
 
@@ -358,13 +358,12 @@ class Run:
         client = Client.get_instance()
 
         try:
-            run = client.beta.threads.create(
-                assistant_id=assistant_id,
-                **thread
-            )
             run = client.beta.threads.create_and_run(
-                assistant_id=assistant_id,
-                thread=thread)
+                assistant_id=self.assistant_id,
+                thread={
+                    "messages": messages
+                }
+            )
 
             self.id = run.id
             self.object = run.object

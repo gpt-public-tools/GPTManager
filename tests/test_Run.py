@@ -28,6 +28,46 @@ class TestRun(unittest.TestCase):
         file_ids= [],
         metadata= {},
     )
+
+    mock_thread_and_run_data = MagicMock(
+        id= 'test_run_id',  
+        object= 'thread.run',
+        created_at= 123456789,
+        assistant_id= 'test_assistant_id',
+        thread_id= 'test_thread_id',
+        status= 'queued',
+        started_at= None,
+        expires_at= 123456789,
+        cancelled_at= None,
+        failed_at= None,
+        completed_at= None,
+        last_error= None,
+        model= 'gpt-4-1106-preview',
+        instructions= "You are a helpful assistant.",
+        tools = [],
+        file_ids = [],
+        metadata= {},
+    )
+
+    mock_run_cancel_data = MagicMock(
+        id= 'test_run_id',  
+        object= 'thread.run',
+        created_at= 123456789,
+        assistant_id= 'test_assistant_id',
+        thread_id= 'test_thread_id',
+        status= 'cancelling',
+        started_at= 123456789,
+        expires_at= None,
+        cancelled_at= None,
+        failed_at= None,
+        completed_at= 123456789,
+        last_error= None,
+        model= 'gpt-4-1106-preview',
+        instructions= None,
+        tools= [],
+        file_ids= [],
+        metadata= {},
+    )
     
     mock_run_modify_data = MagicMock(
         id= 'test_run_id',  
@@ -125,6 +165,8 @@ class TestRun(unittest.TestCase):
         mock_openai.return_value.beta.threads.runs.update.return_value = self.mock_run_modify_data
         mock_openai.return_value.beta.threads.runs.list.return_value = self.mock_runs_list_data
         mock_openai.return_value.beta.threads.runs.submit_tool_outputs.return_value = self.mock_submit_tool_data
+        mock_openai.return_value.beta.threads.runs.cancel.return_value = self.mock_run_cancel_data
+        mock_openai.return_value.beta.threads.create_and_run.return_value = self.mock_thread_and_run_data
 
 
     # Test for create_run method
@@ -152,7 +194,6 @@ class TestRun(unittest.TestCase):
 
     @patch('GPTManager.Client.OpenAI')
     def test_list_runs(self, mock_openai):
-        # Call the list_runs method
         runs = self._run.list_runs()
 
         # Assert that the method returns a list of Run objects
@@ -164,6 +205,47 @@ class TestRun(unittest.TestCase):
         # Assert that each Run object has the correct attributes set
         self.assertEqual(runs[0].id, "test_run_id")
         self.assertEqual(runs[1].id, "test_run_id")
+
+
+    @patch('GPTManager.Client.OpenAI')
+    def test_submit_tool_outputs(self, mock_openai):
+        # Define the tool outputs to be submitted
+        tool_outputs = [
+            {
+                "tool_call_id": "test_tool_call_id", 
+                "output": "test_tool_output"
+            }
+        ]
+        self._run.submit_tool_outputs(tool_outputs=tool_outputs)
+
+        self.assertEqual(self._run.status, 'queued')
+        self.assertEqual(self._run.started_at, 1699075592)
+        self.assertEqual(self._run.instructions, "You tell the weather.")
+        self.assertIsInstance(self._run.tools, list)
+
+
+    @patch('GPTManager.Client.OpenAI')
+    def test_cancel_run(self, mock_openai):
+        # Define the tool outputs to be submitted
+        self._run.cancel_run()
+        self.assertEqual(self._run.object, 'thread.run')
+        self.assertEqual(self._run.status, 'cancelling')
+
+
+    @patch('GPTManager.Client.OpenAI')
+    def test_create_thread_and_run(self, mock_openai):
+        self._run.create_thread_and_run(
+            messages=[
+                    {"role": "user", "content": "Explain deep learning to a 5 year old."}
+                ]
+        )
+
+        # Assert that the Run object's properties are updated correctly
+        self.assertEqual(self._run.object, "thread.run")
+        self.assertEqual(self._run.status, "queued")
+        self.assertEqual(self._run.expires_at, 123456789)
+        self.assertEqual(self._run.instructions, "You are a helpful assistant.")
+
 
 
 
