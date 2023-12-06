@@ -125,31 +125,24 @@ class Run:
         self.file_ids = kwargs.get("file_ids", None)
         self.metadata = kwargs.get("metadata", None)
 
-        
-
-        if (self.thread_id != None 
-            and self.assistant_id != None 
-            and self.id != None, self.object != None 
-            and self.created_at != None 
-            and self.status != None 
-            and self.started_at != None 
-            and self.tools != None 
-            and self.file_ids != None 
-            and self.metadata != None
-            and self.object == "run"
-            and self.tools != None
-            and self.file_ids != None
-            and self.metadata != None):
-            
-            
-
-        if run_id is not None and thread_id is not None:
-            self.id = run_id
-            self.thread_id = thread_id
+        if (
+            self.id != None and
+            self.object != None and
+            self.created_at != None and
+            self.assistant_id != None and
+            self.thread_id != None and
+            self.status != None and
+            self.started_at != None and
+            self.completed_at != None and
+            self.model != None and
+            self.tools != None and
+            self.file_ids != None and
+            self.metadata != None
+        ): return
+           
+        if self.id is not None and self.thread_id is not None:
             self.retrieve_run()
-        elif thread_id is not None and assistant_id is not None:
-            self.assistant_id = assistant_id
-            self.thread_id = thread_id
+        elif self.thread_id is not None and self.assistant_id is not None:
             self.create_run()
         
 

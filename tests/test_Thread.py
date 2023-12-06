@@ -280,8 +280,6 @@ class TestThread(unittest.TestCase):
 
     @patch('GPTManager.Client.OpenAI')
     def test_list_message_files(self, mock_openai):
-        
-
         result = self.thread.list_message_files('test_message_id')
 
         self.assertIsInstance(result, list)

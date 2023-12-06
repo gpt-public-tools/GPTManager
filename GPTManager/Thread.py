@@ -505,7 +505,6 @@ class Thread:
                     metadata = run_data.metadata,
                     thread_id=run_data.thread_id,
                     assistant_id=run_data.assistant_id,
-                    run_id=run_data.id
                 ) 
                 for run_data 
                 in runs_data.data
