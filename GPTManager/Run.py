@@ -91,7 +91,7 @@ class Run:
     file_ids: list[Any]
     metadata: dict[str, Any]
 
-    def __init__(self, thread_id: str|None = None, assistant_id: str|None = None, run_id: str|None = None) -> None:
+    def __init__(self, **kwargs) -> None:
         """
         Creates a new thread run or retrieves an existing one.
 
@@ -106,6 +106,43 @@ class Run:
         Raises:
             ValueError: If the thread_id or assistant_id is not set.
         """
+
+        self.id = kwargs.get("id", None)
+        self.object = kwargs.get("object", None)
+        self.created_at = kwargs.get("created_at", None)
+        self.assistant_id = kwargs.get("assistant_id", None)
+        self.thread_id = kwargs.get("thread_id", None)
+        self.status = kwargs.get("status", None)
+        self.started_at = kwargs.get("started_at", None)
+        self.expires_at = kwargs.get("expires_at", None)
+        self.cancelled_at = kwargs.get("cancelled_at", None)
+        self.failed_at = kwargs.get("failed_at", None)
+        self.completed_at = kwargs.get("completed_at", None)
+        self.last_error = kwargs.get("last_error", None)
+        self.model = kwargs.get("model", None)
+        self.instructions = kwargs.get("instructions", None)
+        self.tools = kwargs.get("tools", None)
+        self.file_ids = kwargs.get("file_ids", None)
+        self.metadata = kwargs.get("metadata", None)
+
+        
+
+        if (self.thread_id != None 
+            and self.assistant_id != None 
+            and self.id != None, self.object != None 
+            and self.created_at != None 
+            and self.status != None 
+            and self.started_at != None 
+            and self.tools != None 
+            and self.file_ids != None 
+            and self.metadata != None
+            and self.object == "run"
+            and self.tools != None
+            and self.file_ids != None
+            and self.metadata != None):
+            
+            
+
         if run_id is not None and thread_id is not None:
             self.id = run_id
             self.thread_id = thread_id
