@@ -1,5 +1,5 @@
 from .Assistant import Assistant, AssistantFile, Tool
-from .Thread import Thread, Message, MessageFile
+from .Thread import Thread, Message, MessageFile, Message_Base
 from .Run import Run, Tool, RunStep
 from .File import File
 from .Organization import Organization

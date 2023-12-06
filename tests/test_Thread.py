@@ -5,6 +5,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from GPTManager.Thread import Thread, Message_Base, Message, MessageFile
+from GPTManager.Run import Run
 
 import openai
 import os
@@ -103,6 +104,36 @@ class TestThread(unittest.TestCase):
         has_more= False
     )
     
+    mock_run_data = MagicMock(
+        id= 'test_run_id',  
+        object= 'thread.run',
+        created_at= 123456789,
+        assistant_id= 'test_assistant_id',
+        thread_id= 'test_thread_id',
+        status= 'completed',
+        started_at= 123456789,
+        expires_at= None,
+        cancelled_at= None,
+        failed_at= None,
+        completed_at= 123456789,
+        last_error= None,
+        model= 'gpt-4-1106-preview',
+        instructions= None,
+        tools= [],
+        file_ids= [],
+        metadata= {},
+    )
+
+    mock_runs_list_data = MagicMock(
+        object = "list",
+        data = [
+            mock_run_data,
+            mock_run_data
+        ],
+        first_id= "test_run_id",
+        last_id= "test_run_id",
+        has_more= False
+    )
                     
     @patch('GPTManager.Client.OpenAI')
     def setUp(self, mock_openai):
@@ -118,6 +149,7 @@ class TestThread(unittest.TestCase):
         mock_openai.return_value.beta.threads.messages.list.return_value = self.mock_messages_list_data
         mock_openai.return_value.beta.threads.messages.files.retrieve.return_value = self.mock_message_file_data
         mock_openai.return_value.beta.threads.messages.files.list.return_value = self.mock_message_file_list_data
+        mock_openai.return_value.beta.threads.runs.list.return_value = self.mock_runs_list_data
 
         self.thread = Thread()
     
@@ -255,6 +287,21 @@ class TestThread(unittest.TestCase):
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 2)
         self.assertTrue(all(isinstance(file, MessageFile) for file in result))
+
+    
+    @patch('GPTManager.Client.OpenAI')
+    def test_list_runs(self, mock_openai):
+        runs = self.thread.list_runs()
+
+        # Assert that the method returns a list of Run objects
+        self.assertIsInstance(runs, list)
+        self.assertEqual(len(runs), 2)
+        self.assertIsInstance(runs[0], Run)
+        self.assertIsInstance(runs[1], Run)
+
+        # Assert that each Run object has the correct attributes set
+        self.assertEqual(runs[0].id, "test_run_id")
+        self.assertEqual(runs[1].id, "test_run_id")
 
 
 if __name__ == '__main__':

@@ -6,7 +6,6 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from GPTManager.Client import Client
-from GPTManager.Thread import Message_Base
 
 @dataclass
 class Tool:
@@ -48,34 +47,6 @@ class RunStep:
     failed_at: Optional[int]
     last_error: Optional[str]
     step_details: dict
-
-    def retrieve_run_step(self):
-        client = Client.get_instance()
-
-        try:
-            run_step = client.beta.threads.runs.steps.retrieve(
-                thread_id=self.thread_id,
-                run_id=self.run_id,
-                step_id=self.id
-            )
-            
-            self.object = run_step.object
-            self.created_at = run_step.created_at
-            self.run_id = run_step.run_id
-            self.assistant_id = run_step.assistant_id
-            self.thread_id = run_step.thread_id
-            self.type = run_step.type
-            self.status = run_step.status
-            self.cancelled_at = run_step.cancelled_at
-            self.completed_at = run_step.completed_at
-            self.expired_at = run_step.expired_at
-            self.failed_at = run_step.failed_at
-            self.last_error = run_step.last_error
-            self.step_details = run_step.step_details
-
-        except Exception as e:
-            raise ValueError("Failed to retrive run step.") from e
-
 
 
 @dataclass
@@ -247,34 +218,7 @@ class Run:
         except Exception as e:
             raise ValueError("Failed to modify run") from e
         
-    def list_runs(self) -> list['Run']:
-        """
-        Lists all thread runs.
-        Returns:
-            list[RunObject]: A list of RunObject instances representing each run.
-        Raises:
-            ValueError: If the thread_id or assistant_id is not set, or if the API call fails.
-        """
-        client = Client.get_instance()
-
-        try:
-            runs_data = client.beta.threads.runs.list(
-                thread_id=self.thread_id
-            )
-            runs = [
-                        Run(
-                            thread_id=self.thread_id,
-                            assistant_id=self.assistant_id,
-                            run_id=run_data.id
-                        ) 
-                        for run_data 
-                        in runs_data.data
-                    ]  # Convert each dict to a RunObject
-            return runs
-
-        except Exception as e:
-            raise ValueError("Failed to list runs") from e
-        
+      
     def submit_tool_outputs(self, tool_outputs: list[dict]) -> None:
         """
         Submits tool outputs for a thread run.
@@ -309,7 +253,8 @@ class Run:
 
         except Exception as e:
             raise ValueError("Failed to submit tool outputs") from e
-        
+
+
     def cancel_run(self) -> None:
         """
         Cancels a thread run.
@@ -344,7 +289,8 @@ class Run:
 
         except Exception as e:
             raise ValueError("Failed to cancel run") from e
-        
+
+       
     def create_thread_and_run(self, messages: list[dict]):
         """
         Creates a thread and run.
@@ -383,7 +329,36 @@ class Run:
 
         except Exception as e:
             raise ValueError("Failed to create thread and run") from e
-        
+
+
+        def retrieve_run_step(self):
+            client = Client.get_instance()
+
+            try:
+                run_step = client.beta.threads.runs.steps.retrieve(
+                    thread_id=self.thread_id,
+                    run_id=self.run_id,
+                    step_id=self.id
+                )
+                
+                self.object = run_step.object
+                self.created_at = run_step.created_at
+                self.run_id = run_step.run_id
+                self.assistant_id = run_step.assistant_id
+                self.thread_id = run_step.thread_id
+                self.type = run_step.type
+                self.status = run_step.status
+                self.cancelled_at = run_step.cancelled_at
+                self.completed_at = run_step.completed_at
+                self.expired_at = run_step.expired_at
+                self.failed_at = run_step.failed_at
+                self.last_error = run_step.last_error
+                self.step_details = run_step.step_details
+
+            except Exception as e:
+                raise ValueError("Failed to retrive run step.") from e
+
+
     def list_run_steps(self):
         client = Client.get_instance()
 

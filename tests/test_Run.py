@@ -192,20 +192,6 @@ class TestRun(unittest.TestCase):
         self._run.modify_run(metadata={"new_key": "new_value"})
         self.assertEqual(self._run.metadata, {"new_key": "new_value"})
 
-    @patch('GPTManager.Client.OpenAI')
-    def test_list_runs(self, mock_openai):
-        runs = self._run.list_runs()
-
-        # Assert that the method returns a list of Run objects
-        self.assertIsInstance(runs, list)
-        self.assertEqual(len(runs), 2)
-        self.assertIsInstance(runs[0], Run)
-        self.assertIsInstance(runs[1], Run)
-
-        # Assert that each Run object has the correct attributes set
-        self.assertEqual(runs[0].id, "test_run_id")
-        self.assertEqual(runs[1].id, "test_run_id")
-
 
     @patch('GPTManager.Client.OpenAI')
     def test_submit_tool_outputs(self, mock_openai):
@@ -247,6 +233,57 @@ class TestRun(unittest.TestCase):
         self.assertEqual(self._run.instructions, "You are a helpful assistant.")
 
 
+class TestRunStep(unittest.TestCase):
+    mock_run_step_data = MagicMock(
+        id= 'test_run_step_id',  
+        object= 'thread.run.step',
+        created_at= 123456789,
+        run_id= 'test_run_id',
+        asistant_id = "test_asistant_id",
+        thread_id= 'test_thread_id',
+        type = "message_creation",
+        status= 'completed',
+        cancelled_at= None,
+        completed_at= 123456789,
+        expired_at= None,
+        failed_at= None,
+        last_error= None,
+        step_details = MagicMock( 
+            type = "message_creation",
+            message_creation = MagicMock(
+                message_id = "msg_abc123"
+            )       
+        ) 
+    )
+
+
+    @patch('GPTManager.Client.OpenAI')
+    def setUp(self, mock_openai):
+        openai.api_key = os.getenv('OPENAI_API_KEY')
+        self.thread = Thread()
+        self.assistant = Assistant(
+            instructions='You are an assistant', 
+            name='test_asistant', 
+            model='gpt-4-1106-preview', 
+            tools=[]
+        )
+        self.run_step_id = 'test_run_step_id'
+        self._run = RunStep(thread_id=self.thread.id, assistant_id=self.assistant.id)
+        
+        mock_openai.return_value.beta.threads.runs.create.return_value = self.mock_run_data
+        mock_openai.return_value.beta.threads.runs.retrieve.return_value = self.mock_run_data
+        mock_openai.return_value.beta.threads.runs.update.return_value = self.mock_run_modify_data
+        mock_openai.return_value.beta.threads.runs.submit_tool_outputs.return_value = self.mock_submit_tool_data
+        mock_openai.return_value.beta.threads.runs.cancel.return_value = self.mock_run_cancel_data
+        mock_openai.return_value.beta.threads.create_and_run.return_value = self.mock_thread_and_run_data
+
+
+    # Test for retrieve_run method
+    @patch('GPTManager.Client.OpenAI')
+    def test_retrieve_run(self, mock_openai):
+        self._run.retrieve_run()
+        self.assertEqual(self._run.object, 'thread.run')
+        self.assertEqual(self._run.status, 'completed')
 
 
 if __name__ == '__main__':
