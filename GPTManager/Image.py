@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from openai import OpenAI
 from typing import Optional
+from GPTManager.Client import Client
+
 
 @dataclass
 class Image:
@@ -38,7 +40,7 @@ class Image:
         Raises:
             ValueError: If the image creation fails or returns invalid data.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             kwargs = {
@@ -76,7 +78,7 @@ class Image:
         Raises:
             ValueError: If the image creation fails or returns invalid data.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             image_data = client.images.edit(
@@ -108,7 +110,7 @@ class Image:
         Raises:
             ValueError: If the image creation fails or returns invalid data.
         """
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             image_data = client.images.create_variation(

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from openai import OpenAI
+from GPTManager.Client import Client
 
 
 @dataclass
@@ -28,7 +29,7 @@ class File:
         self.purpose = purpose
         self.filename = file_path.split('/')[-1]
 
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             file_data = client.files.create(
@@ -59,7 +60,7 @@ class File:
             ValueError: If the file deletion fails or returns invalid data.
             """
 
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             return client.files.delete(self.id)
@@ -80,7 +81,7 @@ class File:
             ValueError: If the file retrieval fails or returns invalid data.
             """
 
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             file = client.files.retrieve(self.id)
@@ -108,7 +109,7 @@ class File:
             ValueError: If the file content retrieval fails or returns invalid data.
         """
 
-        client = OpenAI()
+        client = Client.get_instance()
 
         try:
             file = client.files.retrieve(self.id)
