@@ -7,7 +7,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from GPTManager.Client import Client
-
+from .Thread import Thread
+from .Run import Run
 @dataclass
 class AssistantFile:
     id: str
@@ -328,3 +329,48 @@ class Assistant:
             return [AssistantFile(**assistant_file) for assistant_file in assistant_files]
         except Exception as e:
             raise ValueError("Failed to list assistant files") from e
+        
+    def create_run(self, thread: Thread) -> Run:
+        """
+        Creates a new run.
+
+        Parameters:
+            thread (Thread): The thread to be used for the run.
+
+        Returns:
+            Run: The created run.
+
+        Raises:
+            ValueError: If run creation fails.
+        """
+        client = Client.get_instance()
+
+        try:
+            run_data = client.beta.assistants.create_run(
+                assistant_id=self.id,
+                thread_id=thread.id
+            )
+            return Run(
+                id = run_data.id,
+                object = run_data.object,
+                created_at = run_data.created_at,
+                status = run_data.status,
+                started_at = run_data.started_at,
+                expires_at = run_data.expires_at,
+                cancelled_at = run_data.cancelled_at,
+                failed_at = run_data.failed_at,
+                completed_at = run_data.completed_at,
+                last_error = run_data.last_error,
+                model = run_data.model,
+                instructions = run_data.instructions,
+                tools = run_data.tools,
+                file_ids = run_data.file_ids,
+                metadata = run_data.metadata,
+                thread_id=run_data.thread_id,
+                assistant_id=run_data.assistant_id
+            )
+        except Exception as e:
+            raise ValueError("Failed to create run") from e
+    
+
+

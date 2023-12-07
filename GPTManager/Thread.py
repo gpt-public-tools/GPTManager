@@ -8,6 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from GPTManager.Client import Client
 from .Run import Run
+from .Assistant import Assistant
 
 
 import openai
@@ -512,5 +513,40 @@ class Thread:
         except Exception as e:
             raise ValueError("Failed to list runs") from e
 
+    def create_run(self, assistant: Assistant) -> Run:
+        """
+        Creates a new run for the thread.
+        Returns:
+            RunObject: An instance representing the created run.
+        Raises:
+            ValueError: If the thread_id or assistant_id is not set, or if the API call fails.
+        """
+        client = Client.get_instance()
 
+        try:
+            run_data = client.beta.threads.runs.create(
+                thread_id=self.id,
+                assistant_id=assistant.id
+            )
+            return Run(
+                id = run_data.id,
+                object = run_data.object,
+                created_at = run_data.created_at,
+                status = run_data.status,
+                started_at = run_data.started_at,
+                expires_at = run_data.expires_at,
+                cancelled_at = run_data.cancelled_at,
+                failed_at = run_data.failed_at,
+                completed_at = run_data.completed_at,
+                last_error = run_data.last_error,
+                model = run_data.model,
+                instructions = run_data.instructions,
+                tools = run_data.tools,
+                file_ids = run_data.file_ids,
+                metadata = run_data.metadata,
+                thread_id=run_data.thread_id,
+                assistant_id=run_data.assistant_id
+            )
+        except Exception as e:
+            raise ValueError("Failed to create run") from e
 
